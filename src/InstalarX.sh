@@ -12,6 +12,154 @@
 #
 #===========================================================
 
+function mostrarMensajeInstalacionFinalizada {
+
+	dirconf=`ls $CONFDIR`
+	dirbin=`ls $BINDIR`
+	dirmae=`ls $MAEDIR`
+
+	mensaje="
+TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 1.
+
+Librería del sistema: $CONFDIR
+
+Archivos: 
+$dirconf
+
+
+Ejecutables: $BINDIR
+
+Archivos: 
+$dirbin
+
+
+Archivos maestros: $MAEDIR
+
+Archivos: 
+$dirmae
+
+
+Directorio de arribo de archivos externos: $ARRIDIR
+
+Archivos externos aceptados: $ACEPDIR
+
+Archivos externos rechazados: $RECHDIR
+
+Archivos procesados: $PROCDIR
+
+Reportes de salida: $REPODIR
+
+#TODO: ver que comando poner!!!
+Logs de auditoría del Sistema: $LOGDIR/<comando>.$LOGEXT
+
+Estado de la instalación: COMPLETA
+
+Proceso de Instalación CANCELADO.
+"
+
+	echo "$mensaje"
+	grabarLog "$mensaje"
+
+}
+
+#Completa la instalacion en caso de haber encontrado una ya existente (incompleta)
+function completarInstalacion {
+
+	#TODO: COMPLETAR!
+}
+
+
+#Verifica la existencia de directorio de reportes  definido en el archivo de configuracion 
+function chequearREPODIR {
+
+	if [ -z "$REPODIR" ]; then
+		REPODIR="$grupo/reportes"
+		reportes=1
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$REPODIR" ]; then
+			reportes=1
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
+#Verifica la extension del archivo de log 
+function chequearLOGEXT {
+
+	if [ -z "$LOGEXT" ]; then
+		LOGEXT=".log"
+		extension=1
+		cantErrores=$[ $cantErrores + 1]		
+	fi
+
+}
+
+#Verifica la existencia de directorio de archivos de log  definido en el archivo de configuracion 
+function chequearLOGDIR {
+
+	if [ -z "$LOGDIR" ]; then
+		LOGDIR="$grupo/log"
+		log=1
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$LOGDIR" ]; then
+			log=1
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
+#Verifica la existencia de directorio de archivos maestros definido en el archivo de configuracion 
+function chequearMAEDIR {
+
+	if [ -z "$MAEDIR" ]; then
+		MAEDIR="$grupo/mae"
+		maestros=0
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$MAEDIR" ]; then
+			maestros=0
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
+#Verifica la existencia de directorio de procesados definido en el archivo de configuracion 
+function chequearPROCDIR {
+
+	if [ -z "$PROCDIR" ]; then
+		PROCDIR="$grupo/procesados"
+		procesados=1
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$PROCDIR" ]; then
+			procesados=1
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
+#Verifica la existencia de directorio de rechazados definido en el archivo de configuracion 
+function chequearRECHDIR {
+
+	if [ -z "$RECHDIR" ]; then
+		RECHDIR="$grupo/rechazados"
+		rechazados=1
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$RECHDIR" ]; then
+			rechazados=1
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
 #Verifica la existencia de directorio de arribos definido en el archivo de configuracion 
 function chequearARRIDIR {
 
@@ -56,6 +204,7 @@ function chequearComponentesInstalados {
 	chequearMAEDIR
 	chequearLOGDIR
 	chequearLOGEXT
+	chequearREPODIR
 	#chequearLOGSIZE
 
 }
@@ -76,7 +225,7 @@ function mostrarMensajeInicioInstalacion {
 function instalar {
 
 	mostrarMensajeInicioInstalacion
-	#TODO: CONTINUA!
+	#TODO: COMPLETAR!
 }
 
 #Inicializa las variables del directorio del archivo de configuracion
@@ -93,6 +242,7 @@ function inicializarVariablesDefault {
 	MAEDIR=$GRUPO/mae
 	LOGDIR=$GRUPO/log
 	LOGEXT=.log
+	REPODIR=$GRUPO/reportes
 	#LOGSIZE=400
 	
 }
@@ -200,5 +350,15 @@ function main {
 		ejecutables=1
 
 		chequearComponentesInstalados
+
+		if [ $cantErrores -gt 0 ]; then 
+			completarInstalacion
+		else
+			mostrarMensajeInstalacionFinalizada
+		fi
+	fi
+
+	echo "[InstalarX] Instalación Finalizada"
+
 }
 main
