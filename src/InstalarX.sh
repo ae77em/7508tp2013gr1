@@ -12,6 +12,24 @@
 #
 #===========================================================
 
+#Lee las variables del archivo de configuración.
+function leerVariablesDeConfiguracion {
+
+	GRUPO=`grep "GRUPO" "$1" | cut -d"=" -f 2`
+	BINDIR=`grep "BINDIR" "$1" | cut -d"=" -f 2`
+	MAEDIR=`grep "MAEDIR" "$1" | cut -d"=" -f 2`
+	ARRIDIR=`grep "ARRIDIR" "$1" | cut -d"=" -f 2`
+	ACEPDIR=`grep "ACEPDIR" "$1" | cut -d"=" -f 2`
+	RECHDIR=`grep "RECHDIR" "$1" | cut -d"=" -f 2`
+	PROCDIR=`grep "PROCDIR" "$1" | cut -d"=" -f 2`
+	REPODIR=`grep "REPODIR" "$1" | cut -d"=" -f 2`
+	LOGDIR=`grep "LOGDIR" "$1" | cut -d"=" -f 2`
+	LOGEXT=`grep "LOGEXT" "$1" | cut -d"=" -f 2`
+	LOGSIZE=`grep "LOGSIZE" "$1" | cut -d"=" -f 2`
+	DATASIZE=`grep "DATASIZE" "$1" | cut -d"=" -f 2`
+
+}
+
 #Define la extensión de los archivos de log
 function definirLogExt {
 
@@ -389,35 +407,53 @@ function modificarArchivoConfiguracion {
 #Da permisos de ejecucion a los archivos 
 function darPermisosDeEjecucion {
 
-	#TODO: completar!
+	#TODO: completar! hacer esto para todos los archivos de BINDIR
 	#chmod 777 $BINDIR/IniciarT.sh
 
+}
+
+#Mueve archivos maestros al directorio MAEDIR.
+#Mueve la tabla de separadores y la tabla de campos al directorio CONFDIR
+#Mueve los ejecutables y funciones al directorio BINDIR
+function moverArchivos {
+
+	#TODO: completar!
 }
 
 #Crea los directorios que no existen
 function crearEstructurasDeDirectorios {
 
-	#TODO: completar!
+	echo "Creando Estructuras de Directorio....
+"
+	listaDirectorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR)
+
+	for i in ${listaDirectorios[*]}; do
+		echo "Creando $i..."		
+		mkdir -p $i
+	done
+
 }
 
 #Muestra los path seteados para el archivo de configuracion
 function mostrarPaths {
 	
 	mensaje="
-	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 1
+	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
 
 	* Directorio de Trabajo: $GRUPO
 	* Librería del Sistema:  $CONFDIR
-	* Directorio de arribo de archivos externos: $ARRIDIR
-	* Espacio mínimo libre para el arribo de archivos externos: $DATASIZE Mb
-	* Directorio de grabación de los archivos externos rechazados: $RECHDIR
-	* Directorio de grabación de los archivos externos procesados: $PROCDIR
 	* Directorio de grabación de los ejecutables: $BINDIR
 	* Directorio de instalación de los archivos maestros: $MAEDIR
+	* Directorio de arribo de archivos externos: $ARRIDIR
+	* Espacio mínimo libre para el arribo de archivos externos: $DATASIZE Mb
+	* Directorio de grabación de los archivos externos aceptados: $ACEPDIR
+	* Directorio de grabación de los archivos externos rechazados: $RECHDIR
+	* Directorio de grabación de los archivos externos procesados: $PROCDIR
+	* Directorio de grabación de los reportes de salida: $REPODIR
 	* Directorio de grabación de los logs de auditoría: $LOGDIR
 	* Extensión para los archivos de Log: $LOGEXT
 	* Tamaño máximo para los archivos de log: $LOGSIZE Kb
-	* Directorio de grabación de los reportes de salida: $REPODIR
+
 	"
 
 	echo "$mensaje"
@@ -438,7 +474,7 @@ function validarPerl {
 		if [ -n "$version" ]; then
 		validacionPerl="true"
 		mensaje="
-TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 1.
+TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01.
 Perl Version: $version
 "
 		echo "$mensaje"
@@ -450,7 +486,7 @@ Perl Version: $version
 
 	if [ $validacionPerl == "false" ]; then
 		mensaje="
-TP S07508 1er cuatrimestre 2013. Tema T Copyright (C) Grupo 1.
+TP S07508 1er cuatrimestre 2013. Tema T Copyright (C) Grupo 01.
 Para instalar el TP es necesario contar con  Perl 5 o superior instalado. Efectúe su instalación e inténtelo nuevamente.
  
 Proceso de Instalación Cancelado.
@@ -488,13 +524,14 @@ function mostrarComponentesInstalados {
 	faltanej=""
 	faltanmae=""
 	faltaarr=""
-	faltalog=""
+	faltaacep=""
 	faltarech=""
-	faltatamanio=""
+	faltaproc=""
 	faltarepo=""
+	faltalog=""
 	faltaext=""
 	faltatamaniolog=""
-	faltaproc=""
+	faltatamanio=""
 
 
 	if [ "$ejecutables" -ne "0" ];
@@ -528,6 +565,14 @@ function mostrarComponentesInstalados {
 
 	fi
 
+	if [ $aceptados -gt 0 ]; 
+	then 
+
+		faltaacep="No se encontró el directorio de los archivos aceptados especificado en el archivo de configuracion.
+	Se toma por default:  ACEPDIR=\"$ACEPDIR\""
+
+	fi	
+
 	if [ $rechazados -gt 0 ];
 	then
 	
@@ -560,15 +605,7 @@ function mostrarComponentesInstalados {
 
 	fi
 
-	if [ $tamanio -gt 0 ];
-	then
-
-		faltatamanio="No se encontró el tamaño mínimo de espacio en disco para la aplicación.
-	Se toma por default:  DATASIZE=$DATASIZE"
-
-	fi
-	 
-	if [ $extension -gt 0 ];
+		if [ $extension -gt 0 ];
 	then
 	
 		faltaext="No se encontró la extensión del archivo de log.
@@ -584,10 +621,17 @@ function mostrarComponentesInstalados {
 
 	fi
 
+	if [ $tamanio -gt 0 ];
+	then
 
+		faltatamanio="No se encontró el tamaño mínimo de espacio en disco para la aplicación.
+	Se toma por default:  DATASIZE=$DATASIZE"
+
+	fi
+	 
 
 	mensaje="
-	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 1.
+	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01.
 
 	Componentes existentes:
 
@@ -610,13 +654,15 @@ function mostrarComponentesInstalados {
 	$faltanej
 	$faltanmae
 	$faltaarr
+	$faltaacep
 	$faltarech
 	$faltaproc
 	$faltarepo
-	$faltaext
 	$faltalog
-	$faltatamanio
+	$faltaext
 	$faltatamaniolog
+	$faltatamanio
+
 	"
 	echo "$mensaje"
 	grabarEnElLog "$mensaje"
@@ -632,7 +678,7 @@ function mostrarMensajeInstalacionFinalizada {
 	dirmae=`ls $MAEDIR`
 
 	mensaje="
-TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 1.
+TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01.
 
 Librería del sistema: $CONFDIR
 
@@ -663,7 +709,7 @@ Archivos procesados: $PROCDIR
 Reportes de salida: $REPODIR
 
 #TODO: ver que comando poner!!!
-Logs de auditoría del Sistema: $LOGDIR/<comando>.$LOGEXT
+Logs de auditoría del Sistema: $LOGDIR/InstalarX.$LOGEXT
 
 Estado de la instalación: COMPLETA
 
@@ -684,25 +730,54 @@ function completarInstalacion {
 Estado de la instalación: INCOMPLETA "
 	
 	validarRespuesta "Desea completar la instalación? [s/n]"
-
+	
+	#4.3 - El usuario indico SI por lo que paso a chequear que Perl este instalado
 	validarPerl
 
+	#4.3.3 - Mostrar los valores de instalacion
 	mostrarPaths
 
 	echo "Estado de la instalación: LISTA" 
 
-	validarRespuesta "Iniciando Instalación. Está UD. seguro? [s/n]" 
+	#20 - Confirmar Inicio de Instalacion
+	validarRespuesta "Iniciando Instalación. ¿Está UD. seguro? [s/n]" 
 
+	#21 - Instalacion
 	crearEstructurasDeDirectorios
 
-	#TODO: ver!
-	#moverArchivos
+	#TODO: hacer!
+	#21.2 - 21.3 - 21.4
+	moverArchivos
 
 	darPermisosDeEjecucion
-
+	
+	# 21.5 - Actualizar el archivo de configuracion.
 	modificarArchivoConfiguracion
+
+	#22 - NO APLICA
 }
 
+#Verifica la existencia de una cantidad de Xmb disponibles para la instalacion del tp. Si no lo esta asigna 100mb.
+function chequearDATASIZE {
+
+	if [ -z "$DATASIZE" ]; then
+		DATASIZE=100
+		tamanio=1
+		cantErrores=$[ $cantErrores + 1 ]
+	fi
+
+}
+
+#Verifica la existencia de una cantidad de X kb de longitud para el archivo de log. Si no lo esta asigna 400kb.
+function chequearLOGSIZE {
+
+	if [ -z "$LOGSIZE" ]; then
+		LOGSIZE=400
+		tamanioLog=1
+		cantErrores=$[ $cantErrores + 1 ]
+	fi
+
+}
 
 #Verifica la existencia de directorio de reportes  definido en el archivo de configuracion 
 function chequearREPODIR {
@@ -830,17 +905,17 @@ function chequearBINDIR {
 #Verifica cuales son los componentes ya instalados
 function chequearComponentesInstalados {
 	
-	#chequearDATASIZE
 	chequearBINDIR
+	chequearMAEDIR
 	chequearARRIDIR
 	chequearACEPDIR
 	chequearRECHDIR
 	chequearPROCDIR
-	chequearMAEDIR
+	chequearREPODIR
 	chequearLOGDIR
 	chequearLOGEXT
-	chequearREPODIR
-	#chequearLOGSIZE
+	chequearLOGSIZE
+	chequearDATASIZE
 
 }
 
@@ -848,7 +923,7 @@ function chequearComponentesInstalados {
 function mostrarMensajeInicioInstalacion {
 	echo '
 ************************************************************************
-* TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 1
+* TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01
 * A T E N C I O N: Al instalar TP SO7508 Primer Cuatrimestre 2013 UD.
 * expresa aceptar los términos y condiciones del "ACUERDO DE LICENCIA DE
 * SOFTWARE" incluído en este paquete.
@@ -922,17 +997,19 @@ function inicializarVariablesDefault {
 
 	GRUPO=$grupo
 	CONFDIR=$GRUPO/conf
-	#DATASIZE=100
 	BINDIR=$GRUPO/bin
+	MAEDIR=$GRUPO/mae
 	ARRIDIR=$GRUPO/arribos
 	ACEPDIR=$GRUPO/aceptados
 	RECHDIR=$GRUPO/rechazados
 	PROCDIR=$GRUPO/procesados
-	MAEDIR=$GRUPO/mae
+	REPODIR=$GRUPO/reportes
 	LOGDIR=$GRUPO/log
 	LOGEXT=.log
-	REPODIR=$GRUPO/reportes
-	#LOGSIZE=400
+	# Maximo tamanio de archivo de log = 400kb
+	LOGSIZE=400
+	# 100mb de espacio libre para archivos externos
+	DATASIZE=100
 	
 }
 
@@ -974,9 +1051,7 @@ function mensajesInicioLog {
 	mensaje="Directorio de Configuración: $CONFDIR"
 	echo $mensaje
 	grabarLog "$mensaje"
-	
-	#TODO: SACAR
-	echo "Grabo mensajes iniciales en el log"
+
 }
 
 function main {
@@ -984,18 +1059,12 @@ function main {
 	clear
 	cd ..
 
-	#grupo: path donde se encuentra el tp ../grupo1/
-	grupo=$PWD/grupo1
-
-	#TODO: Sacar
-	echo "$grupo"
+	#grupo: path donde se encuentra el tp ../grupo01/
+	grupo=$PWD/grupo01
 
 	#CONFDIR: ubicacion del directorio de configuracion
 	CONFDIR=$grupo/conf
 	
-	#TODO: SACAR
-	echo "$CONFDIR"
-
 	#confFile: nombre archivo configuracion
 	confFile="InstalarX.conf"
 
@@ -1004,7 +1073,7 @@ function main {
 
 	echo "************************************************************************
 *   Bienvenido al Asistente de instalación del sistema ControlX        *
-*   TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 1   *
+*   TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01  *
 ************************************************************************"
 
 	crearDirectorioArchivoConfiguracion
@@ -1017,37 +1086,48 @@ function main {
 	#4 - Detectar si el paquete ControlX o alguno de sus componentes ya esta instalado
 	# Cuento la cantidad de lines del archivo de configuracion
 	cantLineas=$(wc -l $CONFDIR/$confFile | awk '{print $1}')
-	#echo $cantLineas
+
+	#Si tiene 0 lineas el archivo de configuración es porque no tiene nada instalado
 	if ["$cantLineas" -eq "0"];
 	then 
 		#5 - Aceptacion de terminos y condiciones
 		inicializarVariablesDefault
 		instalar
 	else
-		#4.1 - Verifico instalacion previa
-		leerVariablesConfiguracion "$CONFDIR/$confFile"
+		#4.0 - Verifico instalacion previa
+		leerVariablesDeConfiguracion "$CONFDIR/$confFile"
 		
 		cantErrores=0
-		arribos=0
-		log=0
-		rechazados=0
-		reportes=0
-		#tamanio=0
-		extension=0
-		tamanioLog=0
 		maestros=1
 		ejecutables=1
+		arribos=0
+		aceptados=0
+		rechazados=0
+		procesados=0
+		reportes=0
+		log=0
+		extension=0		
+		tamanio=0
+		tamanioLog=0
 
 		chequearComponentesInstalados
 
 		if [ $cantErrores -gt 0 ]; then 
+			#4.2 - Si falta algun componente
 			completarInstalacion
 		else
+			#4.1 - Si esta completo
 			mostrarMensajeInstalacionFinalizada
 		fi
 	fi
 
+	#23 - Mostrar mensaje de fin de instalacion
 	echo "[InstalarX] Instalación Finalizada"
+
+	#24 - FIN
+	#TODO: hacer!
+	#Cerrar el archivo de log
+	#Terminar el proceso	
 
 }
 main
