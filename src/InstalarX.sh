@@ -257,7 +257,7 @@ Insuficiente espacio en disco.
 Espacio disponible: $espacio_libre Mb. 
 Espacio requerido $1 Mb
 Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro valor.
-"
+	"
 			
 		echo "$mensaje"
 		grabarEnElLog "$mensaje"		
@@ -409,34 +409,34 @@ function mostrarInformacionInstalacion {
 
 
 	mensaje="
-	Directorio de Trabajo para la instalación: $GRUPO.
+Directorio de Trabajo para la instalación: $GRUPO.
 
-	Archivos y subdirectorios:  
-	$dirgrupo
-
-
-	Librería del Sistema: $CONFDIR.
-
-	Archivos y subdirectorios: 
-	$dirconf
+Archivos y subdirectorios:  
+$dirgrupo
 
 
-	Estado de la instalación: PENDIENTE
+Librería del Sistema: $CONFDIR.
 
-	Para completar la instalación Ud. deberá:
+Archivos y subdirectorios: 
+$dirconf
 
-	*Definir el directorio de instalación de los ejecutables. 
-	*Definir el directorio de instalación de los archivos maestros.
-	*Definir el directorio de arribo de archivos externos. 
-	*Definir el espacio mínimo libre para el arribo de archivos externos. 
-	*Definir el directorio de grabación de los archivos externos rechazados.
-	*Definir el directorio de grabación de los archivos externos aceptados.
-	*Definir el directorio de grabación de los archivos externos procesados.
-	*Definir el directorio de grabación de los reportes de salida.
-	*Definir el directorio de grabación de los logs de auditoría.
-	*Definir la extensión y tamaño máximo para los archivos de log.
 
-	"
+Estado de la instalación: PENDIENTE
+
+Para completar la instalación Ud. deberá:
+
+*Definir el directorio de instalación de los ejecutables. 
+*Definir el directorio de instalación de los archivos maestros.
+*Definir el directorio de arribo de archivos externos. 
+*Definir el espacio mínimo libre para el arribo de archivos externos. 
+*Definir el directorio de grabación de los archivos externos rechazados.
+*Definir el directorio de grabación de los archivos externos aceptados.
+*Definir el directorio de grabación de los archivos externos procesados.
+*Definir el directorio de grabación de los reportes de salida.
+*Definir el directorio de grabación de los logs de auditoría.
+*Definir la extensión y tamaño máximo para los archivos de log.
+
+	"	
 
 	echo "$mensaje"
 	grabarLog "$mensaje"
@@ -461,6 +461,7 @@ function inicializarVariablesADefinir {
 function modificarArchivoConfiguracion {
 
 	#TODO: completar!
+	echo "TODO: [modificarArchivoConfiguracion] completar!"
 }
 
 #Da permisos de ejecucion a los archivos 
@@ -468,6 +469,7 @@ function darPermisosDeEjecucion {
 
 	#TODO: completar! hacer esto para todos los archivos de BINDIR
 	#chmod 777 $BINDIR/IniciarT.sh
+	echo "TODO: [darPermisosDeEjecucion]completar!"
 
 }
 
@@ -477,6 +479,7 @@ function darPermisosDeEjecucion {
 function moverArchivos {
 
 	#TODO: completar!
+	echo "TODO: [moverArchivos]"
 }
 
 #Crea los directorios que no existen
@@ -497,23 +500,23 @@ function crearEstructurasDeDirectorios {
 function mostrarPaths {
 	
 	mensaje="
-	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
+TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
 
-	* Directorio de Trabajo: $GRUPO
-	* Librería del Sistema:  $CONFDIR
-	* Directorio de grabación de los ejecutables: $BINDIR
-	* Directorio de instalación de los archivos maestros: $MAEDIR
-	* Directorio de arribo de archivos externos: $ARRIDIR
-	* Espacio mínimo libre para el arribo de archivos externos: $DATASIZE Mb
-	* Directorio de grabación de los archivos externos aceptados: $ACEPDIR
-	* Directorio de grabación de los archivos externos rechazados: $RECHDIR
-	* Directorio de grabación de los archivos externos procesados: $PROCDIR
-	* Directorio de grabación de los reportes de salida: $REPODIR
-	* Directorio de grabación de los logs de auditoría: $LOGDIR
-	* Extensión para los archivos de Log: $LOGEXT
-	* Tamaño máximo para los archivos de log: $LOGSIZE Kb
+* Directorio de Trabajo: $GRUPO
+* Librería del Sistema:  $CONFDIR
+* Directorio de grabación de los ejecutables: $BINDIR
+* Directorio de instalación de los archivos maestros: $MAEDIR
+* Directorio de arribo de archivos externos: $ARRIDIR
+* Espacio mínimo libre para el arribo de archivos externos: $DATASIZE Mb
+* Directorio de grabación de los archivos externos aceptados: $ACEPDIR
+* Directorio de grabación de los archivos externos rechazados: $RECHDIR
+* Directorio de grabación de los archivos externos procesados: $PROCDIR
+* Directorio de grabación de los reportes de salida: $REPODIR
+* Directorio de grabación de los logs de auditoría: $LOGDIR
+* Extensión para los archivos de Log: $LOGEXT
+* Tamaño máximo para los archivos de log: $LOGSIZE Kb
 
-	"
+	"	
 
 	echo "$mensaje"
 	grabarEnElLog "$mensaje"
@@ -536,7 +539,7 @@ function validarPerl {
 		mensaje="
 TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01.
 Perl Version: $version
-"
+	"
 		echo "$mensaje"
 		
 		grabarLog "$mensaje"
@@ -692,37 +695,37 @@ function mostrarComponentesInstalados {
 	 
 
 	mensaje="
-	TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01.
+TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01.
 
-	Componentes existentes:
+Componentes existentes:
 
-	Directorio de instalación de los ejecutables: $BINDIR 
+Directorio de instalación de los ejecutables: $BINDIR 
 
-	Archivos:  
+Archivos:  
 
-	$dirbin
-
-
-	Directorio de instalación de los archivos maestros: $MAEDIR
-
-	Archivos: 
-
-	$dirmae
+$dirbin
 
 
-	Componentes faltantes: 
+Directorio de instalación de los archivos maestros: $MAEDIR
 
-	$faltanej
-	$faltanmae
-	$faltaarr
-	$faltaacep
-	$faltarech
-	$faltaproc
-	$faltarepo
-	$faltalog
-	$faltaext
-	$faltatamaniolog
-	$faltatamanio
+Archivos: 
+
+$dirmae
+
+
+Componentes faltantes: 
+
+$faltanej
+$faltanmae
+$faltaarr
+$faltaacep
+$faltarech
+$faltaproc
+$faltarepo
+$faltalog
+$faltaext
+$faltatamaniolog
+$faltatamanio
 
 	"
 	echo "$mensaje"
@@ -775,7 +778,7 @@ Logs de auditoría del Sistema: $LOGDIR/InstalarX.$LOGEXT
 Estado de la instalación: COMPLETA
 
 Proceso de Instalación CANCELADO.
-"
+	"
 
 	echo "$mensaje"
 	grabarLog "$mensaje"
@@ -925,6 +928,22 @@ function chequearRECHDIR {
 	else
 		if ! [ -d "$RECHDIR" ]; then
 			rechazados=1
+			cantErrores=$[ $cantErrores + 1]
+		fi
+	fi
+
+}
+
+#Verifica la existencia de directorio de aceptados definido en el archivo de configuracion 
+function chequearACEPDIR {
+
+	if [ -z "$ACEPDIR" ]; then
+		ACEPDIR="$grupo/aceptados"
+		aceptados=1
+		cantErrores=$[ $cantErrores + 1]
+	else
+		if ! [ -d "$ACEPDIR" ]; then
+			aceptados=1
 			cantErrores=$[ $cantErrores + 1]
 		fi
 	fi
@@ -1131,14 +1150,49 @@ function crearLog {
 function mensajesInicioLog {
 
 	mensaje="[InstalarX] Inicio de Ejecución"
-	echo $mensaje
+	echo "$mensaje"
 	grabarLog "$mensaje"
 	mensaje="[InstalarX] Log del Comando InstalarX: $CONFDIR/$logFile"
-	echo $mensaje
+	echo "$mensaje"
 	grabarLog "$mensaje"
 	mensaje="Directorio de Configuración: $CONFDIR"
-	echo $mensaje
+	echo "$mensaje"
 	grabarLog "$mensaje"
+
+}
+
+#Chequea la existencia de archivos maestros en el directorio maestros para poder efectuar la instalación.
+function testArchivosMaestros  {
+
+	#TODO: hacer! Necesito saber si existen los archivos maestros para efectuar la instalacion
+	echo "TODO: [testArchivosMaestros] hacer!"
+
+}
+
+
+#Chequea la existencia de los archivos ejecutables en el directorio de ejecutables para poder efectuar la instalación.
+function testComandos  {
+
+	#TODO: hacer! Necesito saber si existen los archivos ejecutables para efectuar la instalacion
+	echo "TODO: [testComandos] hacer!"
+
+}
+
+#Verifico la existencia de los archivos necesarios para realizar la instalacion. Maestros y Ejecutables.
+function verificarArchivosInstalacion {
+
+
+	cantErrores=0
+
+	testComandos "$grupo/inst/bin"
+	testArchivosMaestros "$grupo/inst/mae"
+	
+	if [ $cantErrores -gt 0 ]; then
+		echo "
+Proceso de Instalación cancelado.
+Asegúrese de que contar con los archivos arriba mencionados y vuelva a intentarlo."
+		exit 0
+	fi
 
 }
 
@@ -1148,10 +1202,10 @@ function main {
 	cd ..
 
 	#grupo: path donde se encuentra el tp ../grupo01/
-	grupo=$PWD/grupo01
+	grupo="$PWD"
 
 	#CONFDIR: ubicacion del directorio de configuracion
-	CONFDIR=$grupo/conf
+	CONFDIR="$grupo/conf"
 	
 	#confFile: nombre archivo configuracion
 	confFile="InstalarX.conf"
@@ -1163,6 +1217,9 @@ function main {
 *   Bienvenido al Asistente de instalación del sistema ControlX        *
 *   TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01  *
 ************************************************************************"
+
+	#Verifico la existencia de archivos maestros y de los ejecutables
+	verificarArchivosInstalacion
 
 	crearDirectorioArchivoConfiguracion
 	#1 - Inicializar archivo de log
@@ -1176,7 +1233,7 @@ function main {
 	cantLineas=$(wc -l $CONFDIR/$confFile | awk '{print $1}')
 
 	#Si tiene 0 lineas el archivo de configuración es porque no tiene nada instalado
-	if ["$cantLineas" -eq "0"];
+	if [ "$cantLineas" -eq "0" ];
 	then 
 		#5 - Aceptacion de terminos y condiciones
 		inicializarVariablesDefault
