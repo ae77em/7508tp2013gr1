@@ -370,6 +370,30 @@ function definirDirMaestros {
 
 }
 
+#Valida que no se pueda elegir mas de una vez el mismo directorio
+function validarListaDirecciones {
+
+	for i in ${listaDirecciones[*]}; do
+		if [ "$i" == "$1" ]; then
+		echo "ERROR - No puede elegir más de una vez el mismo directorio"
+		cond="error"	
+		fi
+	done
+
+	listaDirecciones=(${listaDirecciones[*]} $1)
+
+}
+
+
+#Valida que el directorio no exista
+function validarDirectorios {
+
+	if [ -d "$1" ]; then
+		echo "ERROR - el directorio ya existe"
+		cond="error"
+	fi
+
+}
 
 #Define el directorio de ejecutables
 function definirDirEjecutables {
@@ -519,7 +543,7 @@ TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
 	"	
 
 	echo "$mensaje"
-	grabarEnElLog "$mensaje"
+	grabarLog "$mensaje"
 
 }
 
@@ -1091,7 +1115,7 @@ function instalar {
 	#21.4 - Mover los ejecutables y funciones al directorio BINDIR
 	moverArchivos
 	
-	establecerPermisosDeEjecucion 
+	darPermisosDeEjecucion 
 	
 	#21.5 - Actualizar el archivo de configuracion
 	modificarArchivoConfiguracion
