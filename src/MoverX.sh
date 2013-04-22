@@ -30,19 +30,21 @@ function MoverX () {
    fi
 
    # 1.3 Verifico si es un archivo duplicado
-   echo "$destino/$archivo"
    if [ -f "$destino/$archivo" ] 
    then
-      # Verifico si existe la carpeta dup, si no, la creo
+      # Verifico si existe la carpeta dup, si no, la creo y genero el numero de secuencia
 	  if [ ! -d "$destino/dup" ]; then
 	     mkdir "$destino/dup"
+	     nroSecuencia="0"
+	  else 
+	     maxNroArchivo=`ls -l $destino/dup/$archivo* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
+	     echo $maxNroArchivo
+	     let "nroSecuencia = maxNroArchivo + 1"
       fi
 	  
-	  # Falta generar el número de control
-	  
-	  #Copio el archivo a la carpeta de duplicados
-      echo "Duplicado"
-	  cp $origen "$destino/dup/$archivo"
+	  # Copio el archivo a la carpeta de duplicados
+      echo "Archivo duplicado"
+	  cp $origen "$destino/dup/$archivo.$nroSecuencia"
 	  return 1
    fi
      
