@@ -30,6 +30,43 @@ function leerVariablesDeConfiguracion {
 
 }
 
+#Valida la extencion del archivo de log
+function validarExtensionLog {
+	
+	res=`echo "$1" | grep "^[.]"`
+	if [  "$1" != "$res" ]; then
+		echo "ERROR - La extensión del log debe comenzar con un punto (.)"
+		cond="error"
+	fi
+	unset res
+}
+
+#Define el tamanio maximo para los archivos de log
+function definirLogSize {
+	
+	cond="error"
+
+	while [ $cond == "error" ]; do
+		cond="ok"
+		#18 - Definir el tamanio maximo para los archivos de log
+		echo "
+* Defina el tamaño máximo para los archivos de Log (en Kbytes):
+* Sugerencia: ($LOGSIZE)"
+		read maxSize
+
+		#Si la persona no ingreso nada entonces se toma por default la sugerencia
+		if [ -z $maxSize ];then
+			maxSize=$LOGSIZE
+		fi
+
+		validarNumerico $maxSize
+	done
+
+	LOGSIZE=$maxSize
+	unset cond
+
+}
+
 #Define la extensión de los archivos de log
 function definirLogExt {
 
@@ -49,34 +86,14 @@ function definirLogExt {
 
 		validarExtensionLog $extLog
 	done
-	unset cond
 	
 	LOGEXT=$extLog
-
-
-	cond="error"
-
-	while [ $cond == "error" ]; do
-		cond="ok"
-		echo "
-* Defina el tamaño máximo para los archivos de Log (en Kbytes):
-* Sugerencia: ($LOGSIZE)"
-		read maxSize
-
-		#Si la persona no ingreso nada entonces se toma por default la sugerencia
-		if [ -z $maxSize ];then
-			maxSize=$LOGSIZE
-		fi
-
-		validarNumerico $maxSize
-	done
 	unset cond
 
-	LOGSIZE=$maxSize
 }
 
 #Define el directorio del log de auditoria
-function definirDirLogAuditoria {
+function definirDirLog {
 
 
 	cond="error"
@@ -84,7 +101,7 @@ function definirDirLogAuditoria {
 	while [ $cond == "error" ]; do
 		cond="ok"	
 		echo "
-* Defina el directorio de grabación de los logs de auditoría:
+* Defina el directorio de grabación de los logs:
 * Sugerencia: ($dirLog)"
 
 		read respuesta
@@ -103,7 +120,6 @@ function definirDirLogAuditoria {
 
 	LOGDIR=$GRUPO/$dirLog
 	unset cond
-
 
 }
 
@@ -225,6 +241,47 @@ function definirDirRechazados {
 
 }
 
+#Valida espacio libre en disco para archivos externos
+function validarEspacioEnDisco {
+
+	espacio_libre=`df | grep "/\$" | awk '{ print $4 }'`
+
+	espacio_libre_kb=$[ $espacio_libre * 1024 ]   #paso de MB a KB
+	espacio_requerido=$[ $1 * 1024 ]   #paso de MB a KB
+
+
+	if [ $espacio_requerido -gt $espacio_libre_kb ]; then
+		
+		mensaje="
+Insuficiente espacio en disco. 
+Espacio disponible: $espacio_libre Mb. 
+Espacio requerido $1 Mb
+Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro valor.
+"
+			
+		echo "$mensaje"
+		grabarEnElLog "$mensaje"		
+		cond="error"
+	fi
+
+}
+
+#Valida que lo ingresado sea un valor numerico entero y mayor a cero
+function validarNumerico {
+
+	res=`echo "$1" | grep "[^0-9]"`
+	if [ "$1" == "$res" ]; then
+		echo "ERROR -  \"$1\" tiene que ser un número entero."
+		cond="error"
+	fi
+	if [ "$1" -eq "0" ];then
+		echo "ERROR - el valor ingresado no puede ser cero."
+		cond="error"
+	fi
+
+	unset res
+}
+
 #Define el datasize
 function definirDataSize {
 
@@ -246,6 +303,7 @@ function definirDataSize {
 		
 		if [ "$cond"  == "ok" ]; 
 		then 
+		    #11 - Verificar espacio en disco
 		    validarEspacioEnDisco $respuesta; 
 		fi
 	done
@@ -388,13 +446,14 @@ function mostrarInformacionInstalacion {
 #Inicializa las variables utilizadas para definir los directorios
 function inicializarVariablesADefinir {
 
-	dirArribos="arribos"
-	dirRechazados="rechazados"
-	dirProcesados="procesados"
 	dirBinarios="bin"
 	dirMaestros="mae"
-	dirLog="log"
+	dirArribos="arribos"
+	dirAceptados="aceptados"
+	dirRechazados="rechazados"
+	dirProcesados="procesados"
 	dirReportes="reportes"
+	dirLog="log"
 
 }
 
@@ -470,6 +529,7 @@ function validarPerl {
 	validacionPerl="false"
 
 	if [ "$?" == 0 ]; then
+	#6.2 - Perl esta instalado. Mostrar y grabar en el log un mensaje informativo con la version de Perl que se encuentra instalada.
 		version=` $pathPerl -v | grep "v[5-9]\."` 
 		if [ -n "$version" ]; then
 		validacionPerl="true"
@@ -485,6 +545,7 @@ Perl Version: $version
 	fi
 
 	if [ $validacionPerl == "false" ]; then
+	#6.1 - Validacion de Perl da error. Mostrar y grabar en el log.
 		mensaje="
 TP S07508 1er cuatrimestre 2013. Tema T Copyright (C) Grupo 01.
 Para instalar el TP es necesario contar con  Perl 5 o superior instalado. Efectúe su instalación e inténtelo nuevamente.
@@ -754,7 +815,7 @@ Estado de la instalación: INCOMPLETA "
 	# 21.5 - Actualizar el archivo de configuracion.
 	modificarArchivoConfiguracion
 
-	#22 - NO APLICA
+	#22 - Borrar los archivos temporarios, si los hubiese generado. NO APLICA
 }
 
 #Verifica la existencia de una cantidad de Xmb disponibles para la instalacion del tp. Si no lo esta asigna 100mb.
@@ -934,44 +995,62 @@ function mostrarMensajeInicioInstalacion {
 #Comienza la instalcion
 function instalar {
 
+	#5.0 - Mostrar mensaje de acuerdo de licencia de software
 	mostrarMensajeInicioInstalacion
 
 	validarRespuesta "¿Desea continuar con la instalación? [s/n]"
 
+	#Son las sugerencias que se dan al usuario a la hora de definir los directorios
 	inicializarVariablesADefinir
 
 	while [ "$respuesta1" != "s" ]
 	do
 		clear
 		
+		#6 - Chequear que Perl este instalado
 		validarPerl
 
 		mostrarInformacionInstalacion		
 
 		listaDirecciones=()
 
+		#7 - Definir el directorio de instalacion de los ejecutables
 		definirDirEjecutables
 
+		#8 - Definir el directorio de instalacion de los archivos maestros
 		definirDirMaestros
 
+		#9 - Definir el directorio de arribo de archivos externos
 		definirDirArribos
 		
+		#10 - Definir el espacio minimo libre para el arribo de archivos externos
+		# Dentro de definirDataSize verifico espacio en disco (11 - Verificar espacio en disco)
 		definirDataSize
 		
+		#12 - Definir el directorio de grabacion de los archivos rechazados
 		definirDirRechazados
 
+		#13 - Definir el directorio de grabacion de los archivos aceptados
 		definirDirAceptados
 
+		#14 - Definir el directorio de trabajo principal del proceso interprete
 		definirDirProcesados
 
+		#15 - Definir el directorio de grabacion de los reportes de salida
 		definirDirReportes
 		
-		definirDirLogAuditoria
+		#16 - Definir el directorio de logs para los comandos
+		definirDirLog
 
+		#17 - Definir la extension para los archivos de log
 		definirLogExt		
+
+		#18 - Definir el tamanio maximo para los archivos de log
+		definirLogSize
 		
 		clear
 
+		#19 - Mostrar estructura de directorios resultante y valores de parametros de configuracion
 		mostrarPaths
 
 		echo "Estado de la instalación: LISTA" 
@@ -981,15 +1060,24 @@ function instalar {
 		read respuesta1
 	done
 
+	#20 - Confirmar inicio de instalacion
 	validarRespuesta "Iniciando Instalación. Está UD. seguro? [s/n]" 
 
+	#21 - Instalacion 
+	#21.1 - Crear las estructuras de directorio requeridas.
 	crearEstructurasDeDirectorios
 
+	#21.2 - Mover los archivos maestros al directorio MAEDIR
+	#21.3 - Mover la tabla de separadores y la tabla de campos al directorio CONFDIR
+	#21.4 - Mover los ejecutables y funciones al directorio BINDIR
 	moverArchivos
 	
 	establecerPermisosDeEjecucion 
 	
+	#21.5 - Actualizar el archivo de configuracion
 	modificarArchivoConfiguracion
+
+	#22 - Borrar archivos temporarios, si los hubiese generado. NO APLICA
 }
 
 #Inicializa las variables del directorio del archivo de configuracion
