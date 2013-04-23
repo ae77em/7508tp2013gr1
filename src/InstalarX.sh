@@ -260,7 +260,7 @@ Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro v
 	"
 			
 		echo "$mensaje"
-		grabarEnElLog "$mensaje"		
+		grabarLog "$mensaje"		
 		cond="error"
 	fi
 
@@ -485,15 +485,56 @@ function inicializarVariablesADefinir {
 function modificarArchivoConfiguracion {
 
 	#TODO: completar!
-	echo "TODO: [modificarArchivoConfiguracion] completar!"
+	echo "
+Actualizando la configuración del sistema..."
+
+	fecha=`date +%d/%m/%y`
+	hora=`date +%R`
+
+	fecha="${fecha} $hora"
+
+	usuario=`who | awk '{ print $1 }'`
+
+	#TODO: faltan variables para los mae
+
+	GRUPO="${GRUPO}=$usuario=$fecha"
+	BINDIR="${BINDIR}=$usuario=$fecha"
+	MAEDIR="${MAEDIR}=$usuario=$fecha"
+	ARRIDIR="${ARRIDIR}=$usuario=$fecha"
+	ACEPDIR="${ACEPDIR}=$usuario=$fecha"
+	RECHDIR="${RECHDIR}=$usuario=$fecha"
+	PROCDIR="${PROCDIR}=$usuario=$fecha"
+	REPODIR="${REPODIR}=$usuario=$fecha"
+	LOGDIR="${LOGDIR}=$usuario=$fecha"
+	LOGEXT="${LOGEXT}=$usuario=$fecha"
+	LOGSIZE="${LOGSIZE}=$usuario=$fecha"
+	DATASIZE="${DATASIZE}=$usuario=$fecha"
+
+
+	echo "
+GRUPO=$GRUPO
+BINDIR=$BINDIR
+MAEDIR=$MAEDIR
+ARRIDIR=$ARRIDIR
+ACEPDIR=$ACEPDIR
+RECHDIR=$RECHDIR
+PROCDIR=$PROCDIR
+REPODIR=$REPODIR
+LOGDIR=$LOGDIR
+LOGEXT=$LOGEXT
+LOGSIZE=$LOGSIZE
+DATASIZE=$DATASIZE
+	"> $CONFDIR/$confFile
+
 }
 
 #Da permisos de ejecucion a los archivos 
 function darPermisosDeEjecucion {
 
-	#TODO: completar! hacer esto para todos los archivos de BINDIR
-	#chmod 777 $BINDIR/IniciarT.sh
-	echo "TODO: [darPermisosDeEjecucion]completar!"
+	#TODO: cambiar nombre de los archivos por los archivos de BINDIR
+	chmod 777 $BINDIR/ej1.sh
+	chmod 777 $BINDIR/ej2.sh
+	chmod 777 $BINDIR/ej3.sh
 
 }
 
@@ -502,8 +543,55 @@ function darPermisosDeEjecucion {
 #Mueve los ejecutables y funciones al directorio BINDIR
 function moverArchivos {
 
-	#TODO: completar!
-	echo "TODO: [moverArchivos]"
+	echo "
+Instalando Archivos Maestros..."
+
+	#TODO: cambiar nombre de los .mae
+	for i in ej1.mae ej2.mae ej3.mae
+	do
+		if [ -f "$grupo/instalacion/mae/$i" ]; then
+			 
+			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/mae/$i" "$MAEDIR" "InstalarX.sh"
+		 	
+			#if [ "$resultado" -ne 0 ]; then
+
+			#	mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+	
+			#	echo "$mensaje"
+
+			#	grabarLog "$mensaje"
+			#fi
+
+		else
+			echo -e "El comando $i no existe\n" 
+		fi
+	done  
+
+	#TODO: falta mover la tabla de separadores y la tabla de campos 
+
+		echo "
+Instalando Programas y Funciones..."
+
+	#TODO: cambiar nombre de los .sh
+	for i in ej1.sh ej2.sh ej3.sh
+	do
+		if [ -f "$grupo/instalacion/bin/$i" ]; then
+			 
+			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/bin/$i" "$BINDIR" "InstalarX.sh"
+		 	
+			#if [ "$resultado" -ne 0 ]; then
+
+			#	mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+	
+			#	echo "$mensaje"
+
+			#	grabarLog "$mensaje"
+			#fi
+				
+		else
+			echo -e "El comando $i no existe\n" 
+		fi
+	done  
 }
 
 #Crea los directorios que no existen
@@ -729,13 +817,11 @@ Archivos:
 
 $dirbin
 
-
 Directorio de instalación de los archivos maestros: $MAEDIR
 
 Archivos: 
 
 $dirmae
-
 
 Componentes faltantes: 
 
@@ -753,8 +839,7 @@ $faltatamanio
 
 	"
 	echo "$mensaje"
-	grabarEnElLog "$mensaje"
-	
+	grabarLog "$mensaje"	
 
 }
 
@@ -833,8 +918,9 @@ Estado de la instalación: INCOMPLETA "
 	#21 - Instalacion
 	crearEstructurasDeDirectorios
 
-	#TODO: hacer!
-	#21.2 - 21.3 - 21.4
+	#21.2 - Mueve archivos maestros al directorio MAEDIR.
+	#21.3 - Mueve la tabla de separadores y la tabla de campos al directorio CONFDIR
+	#21.4 - Mueve los ejecutables y funciones al directorio BINDIR
 	moverArchivos
 
 	darPermisosDeEjecucion
@@ -1166,7 +1252,7 @@ function crearLog {
 
 	#TODO: Ver!
 	#Doy permiso de ejecucion al log
-	#chmod 777 -Tiene que haber un handler para el log
+	#chmod 777 -Tiene que haber un handler para el log. GlogX.sh y VlogX.sh.
 	
 } 
 
@@ -1188,8 +1274,15 @@ function mensajesInicioLog {
 #Chequea la existencia de archivos maestros en el directorio maestros para poder efectuar la instalación.
 function testArchivosMaestros  {
 
-	#TODO: hacer! Necesito saber si existen los archivos maestros para efectuar la instalacion
-	echo "TODO: [testArchivosMaestros] hacer!"
+	#TODO: cambiar nombre de los maestros
+	MAESTROS=(ej1.mae ej2.mae ej3.mae)
+
+	for i in ${MAESTROS[*]}; do
+		if ! [ -f $1/"$i" ]; then
+			echo "* Falta el archivo maestro: \"$i\""
+			cantErrores=$[ $cantErrores + 1 ]	
+		fi
+	done
 
 }
 
@@ -1197,8 +1290,15 @@ function testArchivosMaestros  {
 #Chequea la existencia de los archivos ejecutables en el directorio de ejecutables para poder efectuar la instalación.
 function testComandos  {
 
-	#TODO: hacer! Necesito saber si existen los archivos ejecutables para efectuar la instalacion
-	echo "TODO: [testComandos] hacer!"
+	#TODO: cambiar nombre de los maestros
+	EJECUTABLES=(ej1.sh ej2.sh ej3.sh)
+
+	for i in ${EJECUTABLES[*]}; do
+		if ! [ -f $1/"$i" ]; then
+			echo "* Falta el ejecutable: \"$i\""
+			cantErrores=$[ $cantErrores + 1 ]	
+		fi
+	done
 
 }
 
@@ -1208,8 +1308,8 @@ function verificarArchivosInstalacion {
 
 	cantErrores=0
 
-	testComandos "$grupo/inst/bin"
-	testArchivosMaestros "$grupo/inst/mae"
+	testComandos "$grupo/instalacion/bin"
+	testArchivosMaestros "$grupo/instalacion/mae"
 	
 	if [ $cantErrores -gt 0 ]; then
 		echo "
