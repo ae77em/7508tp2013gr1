@@ -1,12 +1,12 @@
 
-#Aca iria la parte de inicializar el archivo log con GlogX
+#Inicializar el archivo log con GlogX
 
 function grabarLog {
  cmd="[InicioX]" 
  msj="Inicio de Ejecución"
  tmsj="I"
 
- #GlogX "$cmd" "$msj" "$tmsj" 
+ #GlogX "$cmd" "$msj" "$tmsj"
  
  echo $cmd $msj $tmsj
 
@@ -77,10 +77,42 @@ function chequearTablas {
           fi
          
      else
-        echo -e "El archivo maestro $i no existe\n" 
+        echo -e "El archivo maestro $i no existe\n"
      fi
    done  
 
+}
+
+
+function leerVariablesDeConfiguracion {
+
+       GRUPO=`grep "GRUPO" "$1" | cut -d"=" -f 2`
+       BINDIR=`grep "BINDIR" "$1" | cut -d"=" -f 2`
+       MAEDIR=`grep "MAEDIR" "$1" | cut -d"=" -f 2`
+       ARRIDIR=`grep "ARRIDIR" "$1" | cut -d"=" -f 2`
+       ACEPDIR=`grep "ACEPDIR" "$1" | cut -d"=" -f 2`
+       RECHDIR=`grep "RECHDIR" "$1" | cut -d"=" -f 2`
+       PROCDIR=`grep "PROCDIR" "$1" | cut -d"=" -f 2`
+       REPODIR=`grep "REPODIR" "$1" | cut -d"=" -f 2`
+       LOGDIR=`grep "LOGDIR" "$1" | cut -d"=" -f 2`
+       LOGEXT=`grep "LOGEXT" "$1" | cut -d"=" -f 2`
+       LOGSIZE=`grep "LOGSIZE" "$1" | cut -d"=" -f 2`
+       DATASIZE=`grep "DATASIZE" "$1" | cut -d"=" -f 2`
+}
+
+function chequearPaths {
+
+   exec=`echo $PATH | grep "$BINDIR"`
+
+   if [ -z $exec ]; then
+    echo "No esta el path de ejecutables, agregando..."
+    PATH=$PATH:$BINDIR
+    echo -e "Agregado\n"
+    echo $PATH
+   else
+    echo "Esta el path de ejecutables"
+    echo $PATH
+   fi 
 }
 
 
@@ -88,13 +120,16 @@ function chequearTablas {
 
 function main {
 
-  BINDIR="/home/nacho/Escritorio/PruebasSSOO/Comandos"
-  MAEDIR="/home/nacho/Escritorio/PruebasSSOO/Maestros"
+  confFile=InstalX.conf 
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
-  chequearComandos
-  chequearMaestros
-  chequearTablas
   
+  leerVariablesDeConfiguracion $CONFDIR/$confFile
+  #chequearComandos
+  #chequearMaestros
+  #chequearTablas
+  chequearPaths
+  
+
 }
 
 main
