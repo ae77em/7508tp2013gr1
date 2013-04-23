@@ -1,3 +1,16 @@
+#!/bin/bash
+
+#===========================================================
+# ARCHIVO: InicioX.sh
+#
+# FIRMA: TODO:HACER!
+#
+# DESCRIPCION: TODO:HACER!
+#
+# AUTOR: De Zan, Ignacio. 
+# PADRON: 91525
+#
+#===========================================================
 
 #Inicializar el archivo log con GlogX
 
@@ -17,20 +30,20 @@ function grabarLog {
 
 function chequearComandos {
 
- for i in InstalarX.sh InicioX.sh DetectaX.sh Interprete.sh Reporte.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh
+ for i in ${comandos[*]}
    do
      if [ -f $BINDIR/$i ]; then
-          echo -e "El comando $i existe\n"
+          echo "El comando $i existe\n"
  
           if [ -x $BINDIR/$i ]; then 
-            echo -e "y tiene permisos de ejecucion\n"
+            echo "y tiene permisos de ejecucion\n"
           else 
             chmod 777 $BINDIR/$i
             echo `ls -l $BINDIR/$i`
           fi
          
      else
-        echo -e "El comando $i no existe\n" 
+        echo "El comando $i no existe\n" 
      fi
    done  
 }
@@ -43,17 +56,17 @@ function chequearMaestros {
  for i in PPI.mae p-s.mae
    do
      if [ -f $MAEDIR/$i ]; then
-          echo -e "El archivo maestro $i existe\n"
+          echo "El archivo maestro $i existe\n"
  
           if [ -r $MAEDIR/$i ] &&  ! [ -w $MAEDIR/$i ]; then 
-            echo -e "y tiene permisos de lectura, pero no escritura\n"
+            echo "y tiene permisos de lectura, pero no escritura\n"
           else 
             chmod 444 $MAEDIR/$i
             echo `ls -l $MAEDIR/$i`
           fi
          
      else
-        echo -e "El archivo maestro $i no existe\n" 
+        echo "El archivo maestro $i no existe\n" 
      fi
    done  
 
@@ -67,67 +80,111 @@ function chequearTablas {
  for i in T2.tab T1.tab
    do
      if [ -f $CONFDIR/$i ]; then
-          echo -e "El archivo maestro $i existe\n"
+          echo "El archivo maestro $i existe\n"
  
           if [ -r $CONFDIR/$i ] &&  ! [ -w $CONFDIR/$i ]; then 
-            echo -e "y tiene permisos de lectura, pero no escritura\n"
+            echo "y tiene permisos de lectura, pero no escritura\n"
           else 
             chmod 444 $CONFDIR/$i
             echo `ls -l $CONFDIR/$i`
           fi
          
      else
-        echo -e "El archivo maestro $i no existe\n"
+        echo "El archivo maestro $i no existe\n"
      fi
    done  
 
 }
 
+# Lee las variables de Config del archivo InstalX.conf
 
-function leerVariablesDeConfiguracion {
+function setVariablesDeConfiguracion {
 
-       GRUPO=`grep "GRUPO" "$1" | cut -d"=" -f 2`
-       BINDIR=`grep "BINDIR" "$1" | cut -d"=" -f 2`
-       MAEDIR=`grep "MAEDIR" "$1" | cut -d"=" -f 2`
-       ARRIDIR=`grep "ARRIDIR" "$1" | cut -d"=" -f 2`
-       ACEPDIR=`grep "ACEPDIR" "$1" | cut -d"=" -f 2`
-       RECHDIR=`grep "RECHDIR" "$1" | cut -d"=" -f 2`
-       PROCDIR=`grep "PROCDIR" "$1" | cut -d"=" -f 2`
-       REPODIR=`grep "REPODIR" "$1" | cut -d"=" -f 2`
-       LOGDIR=`grep "LOGDIR" "$1" | cut -d"=" -f 2`
-       LOGEXT=`grep "LOGEXT" "$1" | cut -d"=" -f 2`
-       LOGSIZE=`grep "LOGSIZE" "$1" | cut -d"=" -f 2`
-       DATASIZE=`grep "DATASIZE" "$1" | cut -d"=" -f 2`
+ for var in ${variables[*]}
+   do    
+    export $var=`grep "$var" "$1" | cut -d"=" -f 2`
+   done 
 }
+
+#Verifica que las variables de ambiente este seteadas
+
+function chequearVarConfig {
+
+   for var in ${variables[*]}
+     do
+       res=`env | grep $var | cut -d"=" -f 2`
+       if [ -z $res ]; then
+         echo "Falta la variable de ambiente $var" >> errorVar.tmp
+       else
+         echo "$var=$res"
+       fi      
+     done
+    
+    if [ -f errorVar.tmp ]; then
+      mostrarArchivo "errorVar.tmp"
+      rm errorVar.tmp
+    else
+      return 1
+    fi
+}
+
+# Muestra archivo por pantalla
+
+function mostrarArchivo {
+  
+  while read -r linea
+   do
+     echo $linea
+   done < $1
+}
+
+# Chequea que la carpeta donde se encuentran los comandos, este incluido en la variable PATH,
+# para su correcta ejecucion, sino lo setea
 
 function chequearPaths {
+   
+   ejec=`echo $PATH | grep $BINDIR`
 
-   exec=`echo $PATH | grep "$BINDIR"`
+   # echo $ejec    Sacar!
 
-   if [ -z $exec ]; then
+   if [ -z $ejec ]; then
+
     echo "No esta el path de ejecutables, agregando..."
-    PATH=$PATH:$BINDIR
-    echo -e "Agregado\n"
-    echo $PATH
+    export PATH=$PATH:$BINDIR
+    echo "Agregado"
+   # echo $PATH --- Sacar!
+
    else
+
     echo "Esta el path de ejecutables"
-    echo $PATH
+    # echo $PATH --- Sacar!
+
    fi 
 }
-
-
+ 
 #Funcion principal
 
 function main {
 
-  confFile=InstalX.conf 
+  variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
+
+  comandos=(InstalarX.sh InicioX.sh DetectaX.sh Interprete.sh Reporte.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
+
+  confFile=InstalX.conf
+
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
   
-  leerVariablesDeConfiguracion $CONFDIR/$confFile
+  #grabarLog
+  if [ chequearVarConfig == 1 ]; then
+    echo "No hay faltantes"
+  else
+     echo "Hay faltantes"
+  fi 
+  #setVariablesDeConfiguracion $CONFDIR/$confFile
+  #chequearPaths
   #chequearComandos
   #chequearMaestros
   #chequearTablas
-  chequearPaths
   
 
 }
