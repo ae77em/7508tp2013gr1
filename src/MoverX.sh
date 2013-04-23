@@ -33,8 +33,9 @@ function MoverX () {
    if [ -f "$destino/$archivo" ] 
    then
       # Verifico si existe la carpeta dup, si no, la creo y genero el numero de secuencia
-	  if [ ! -d "$destino/dup" ]; then
-	     mkdir "$destino/dup"
+	  if [ ! -d "$destino/dup" ] || [ $(ls -1 $destino/dup | wc -l) = 0 ]
+	  then
+	     mkdir -p "$destino/dup"
 	     nroSecuencia="0"
 	  else 
 	     maxNroArchivo=`ls -l $destino/dup/$archivo* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
