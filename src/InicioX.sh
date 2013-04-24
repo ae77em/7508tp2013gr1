@@ -33,17 +33,17 @@ function chequearComandos {
  for i in ${comandos[*]}
    do
      if [ -f $BINDIR/$i ]; then
-          echo "El comando $i existe\n"
+          echo "El comando $i existe"
  
           if [ -x $BINDIR/$i ]; then 
-            echo "y tiene permisos de ejecucion\n"
+            echo "y tiene permisos de ejecucion"
           else 
             chmod 777 $BINDIR/$i
             echo `ls -l $BINDIR/$i`
           fi
          
      else
-        echo "El comando $i no existe\n" 
+        echo "El comando $i no existe" 
      fi
    done  
 }
@@ -56,17 +56,17 @@ function chequearMaestros {
  for i in PPI.mae p-s.mae
    do
      if [ -f $MAEDIR/$i ]; then
-          echo "El archivo maestro $i existe\n"
+          echo "El archivo maestro $i existe"
  
           if [ -r $MAEDIR/$i ] &&  ! [ -w $MAEDIR/$i ]; then 
-            echo "y tiene permisos de lectura, pero no escritura\n"
+            echo "y tiene permisos de lectura, pero no escritura"
           else 
             chmod 444 $MAEDIR/$i
             echo `ls -l $MAEDIR/$i`
           fi
          
      else
-        echo "El archivo maestro $i no existe\n" 
+        echo "El archivo maestro $i no existe" 
      fi
    done  
 
@@ -80,17 +80,17 @@ function chequearTablas {
  for i in T2.tab T1.tab
    do
      if [ -f $CONFDIR/$i ]; then
-          echo "El archivo maestro $i existe\n"
+          echo "El archivo maestro $i existe"
  
           if [ -r $CONFDIR/$i ] &&  ! [ -w $CONFDIR/$i ]; then 
-            echo "y tiene permisos de lectura, pero no escritura\n"
+            echo "y tiene permisos de lectura, pero no escritura"
           else 
             chmod 444 $CONFDIR/$i
             echo `ls -l $CONFDIR/$i`
           fi
          
      else
-        echo "El archivo maestro $i no existe\n"
+        echo "El archivo maestro $i no existe"
      fi
    done  
 
@@ -108,7 +108,7 @@ function setVariablesDeConfiguracion {
 
 #Verifica que las variables de ambiente este seteadas
 
-function chequearVarConfig {
+function chequearVarConfig() {
 
    for var in ${variables[*]}
      do
@@ -121,10 +121,13 @@ function chequearVarConfig {
      done
     
     if [ -f errorVar.tmp ]; then
-      mostrarArchivo "errorVar.tmp"
+      mostrarArchivo errorVar.tmp
       rm errorVar.tmp
+      $1=0
+      #return 0
     else
-      return 1
+      $1=1
+      #return 1
     fi
 }
 
@@ -175,12 +178,15 @@ function main {
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
   
   #grabarLog
-  if [ chequearVarConfig == 1 ]; then
+  chequearVarConfig result
+  if [ $result == 1 ]; then
     echo "No hay faltantes"
   else
      echo "Hay faltantes"
-  fi 
-  #setVariablesDeConfiguracion $CONFDIR/$confFile
+     setVariablesDeConfiguracion $CONFDIR/$confFile
+  fi
+ 
+  
   #chequearPaths
   #chequearComandos
   #chequearMaestros
