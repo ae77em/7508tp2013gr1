@@ -156,16 +156,14 @@ function chequearPaths {
 function ingresarCantLoop {
  
  echo "Cantidad de ciclos de DetectaX ? (100 ciclos)"
+ read CANLOOP
 
- canloop=0
-
- while [ $canloop <= 0 ]
+ while [ $CANLOOP -le 0 ]
    do
      echo "Por favor ingrese un numero positivo"
-     read canloop
+     read CANLOOP  
    done
-
-  echo $CANLOOP
+   echo $CANLOOP
 }
  
 #Funcion principal
@@ -181,7 +179,9 @@ function main {
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
 
 #  grabarLog
- ingresarCantLoop
+
+   ingresarCantLoop
+
 #  chequearVarConfig
 
 #  if [ $? == 1 ]; then
