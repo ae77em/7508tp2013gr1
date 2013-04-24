@@ -108,37 +108,25 @@ function setVariablesDeConfiguracion {
 
 #Verifica que las variables de ambiente este seteadas
 
-function chequearVarConfig() {
+function chequearVarConfig {
 
    for var in ${variables[*]}
      do
        res=`env | grep $var | cut -d"=" -f 2`
-       if [ -z $res ]; then
+       if [ -z "$res" ]; then
          echo "Falta la variable de ambiente $var" >> errorVar.tmp
        else
          echo "$var=$res"
        fi      
      done
-    
-    if [ -f errorVar.tmp ]; then
-      mostrarArchivo errorVar.tmp
+
+   if [ -f errorVar.tmp ]; then
+      cat errorVar.tmp
       rm errorVar.tmp
-      $1=0
-      #return 0
-    else
-      $1=1
-      #return 1
-    fi
-}
-
-# Muestra archivo por pantalla
-
-function mostrarArchivo {
-  
-  while read -r linea
-   do
-     echo $linea
-   done < $1
+      return 1
+  else
+      return 0 
+  fi   
 }
 
 # Chequea que la carpeta donde se encuentran los comandos, este incluido en la variable PATH,
@@ -164,6 +152,21 @@ function chequearPaths {
 
    fi 
 }
+
+function ingresarCantLoop {
+ 
+ echo "Cantidad de ciclos de DetectaX ? (100 ciclos)"
+
+ canloop=0
+
+ while [ $canloop <= 0 ]
+   do
+     echo "Por favor ingrese un numero positivo"
+     read canloop
+   done
+
+  echo $CANLOOP
+}
  
 #Funcion principal
 
@@ -176,21 +179,23 @@ function main {
   confFile=InstalX.conf
 
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
-  
-  #grabarLog
-  chequearVarConfig result
-  if [ $result == 1 ]; then
-    echo "No hay faltantes"
-  else
-     echo "Hay faltantes"
-     setVariablesDeConfiguracion $CONFDIR/$confFile
-  fi
- 
-  
-  #chequearPaths
-  #chequearComandos
-  #chequearMaestros
-  #chequearTablas
+
+#  grabarLog
+ ingresarCantLoop
+#  chequearVarConfig
+
+#  if [ $? == 1 ]; then
+#    echo "Variables no seteadas, agregando..."
+#    setVariablesDeConfiguracion $CONFDIR/$confFile
+#  else 
+#    echo "Variables seteadas"
+#  fi
+
+#  chequearPaths
+#  chequearComandos
+#  ingresarCantLoop
+#  chequearMaestros
+#  chequearTablas
   
 
 }
