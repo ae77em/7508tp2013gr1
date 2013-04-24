@@ -552,15 +552,19 @@ Instalando Archivos Maestros..."
 		if [ -f "$grupo/instalacion/mae/$i" ]; then
 			 
 			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/mae/$i" "$MAEDIR" "InstalarX.sh"
+
+			resultado=$?
+
+			#echo "RESULTADO: $resultado"
 		 	
-			#if [ "$resultado" -ne 0 ]; then
+			if [ "$resultado" -ne 0 ]; then
 
-			#	mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
 	
-			#	echo "$mensaje"
+				echo "$mensaje"
 
-			#	grabarLog "$mensaje"
-			#fi
+				grabarLog "$mensaje"
+			fi
 
 		else
 			echo -e "El comando $i no existe\n" 
@@ -579,14 +583,18 @@ Instalando Programas y Funciones..."
 			 
 			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/bin/$i" "$BINDIR" "InstalarX.sh"
 		 	
-			#if [ "$resultado" -ne 0 ]; then
+			resultado=$?
 
-			#	mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+			#echo "RESULTADO: $resultado"
+
+			if [ "$resultado" -ne 0 ]; then
+
+				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
 	
-			#	echo "$mensaje"
+				echo "$mensaje"
 
-			#	grabarLog "$mensaje"
-			#fi
+				grabarLog "$mensaje"
+			fi
 				
 		else
 			echo -e "El comando $i no existe\n" 
