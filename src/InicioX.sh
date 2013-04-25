@@ -153,6 +153,8 @@ function chequearPaths {
    fi 
 }
 
+# Funcion que pide por teclado la cantidad de loops que quiere que haga el DetectaX
+
 function ingresarCantLoop {
  
  echo "Cantidad de ciclos de DetectaX ? (100 ciclos)"
@@ -163,8 +165,37 @@ function ingresarCantLoop {
      echo "Por favor ingrese un numero positivo"
      read CANLOOP  
    done
-   echo $CANLOOP
 }
+
+# Funcion que pide por teclado el tiempo de espera que quiere que tenga el DetectaX
+
+function ingresartEspera {
+ 
+ echo "Tiempo de espera entre ciclos? (1 minuto)"
+ read TESPERA
+
+ while [ $TESPERA -lt 1 ]
+   do
+     echo "Por favor ingrese un numero mayor a un minuto"
+     read TESPERA  
+   done
+}
+
+# Chequea si el proceso DetectaX ya esta corriendo
+
+function chequearDetectaX {
+
+ resultado=`ps -A | grep "DetectaX.sh"`
+
+ # echo $resultado   # Sacar!
+
+ if [ -z "$resultado" ]; then
+   return 0
+ else
+   return 1
+ fi
+}
+
  
 #Funcion principal
 
@@ -178,9 +209,19 @@ function main {
 
   CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
 
-#  grabarLog
+#   grabarLog
 
-   ingresarCantLoop
+    chequearDetectaX
+
+    if [ $? == 1 ]; then
+      echo "El proceso DetectaX ya se esta ejecutando"
+    else
+      echo "El proceso DetectaX no se esta ejecutando" # Agregar funcion que lanze el script DetectaX
+   fi
+     
+
+#   ingresarCantLoop
+#   ingresartEspera
 
 #  chequearVarConfig
 
