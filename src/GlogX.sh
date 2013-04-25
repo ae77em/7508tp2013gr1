@@ -41,4 +41,6 @@ function GlogX {
    # Escribo el log
    # When Who Where What Why
    echo $fecha $usuario $comando $tipoMensaje $mensaje >> $directorioLog/$archivoLog.$LOGEXT
+   
+   return 0
 }
