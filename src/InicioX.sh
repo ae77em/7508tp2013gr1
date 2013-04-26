@@ -187,8 +187,6 @@ function chequearDetectaX {
 
  resultado=`ps -A | grep "DetectaX.sh"`
 
- # echo $resultado   # Sacar!
-
  if [ -z "$resultado" ]; then
    return 0
  else
@@ -196,6 +194,27 @@ function chequearDetectaX {
  fi
 }
 
+# Pregunta si se desea iniciar el comando DetectaX, y actua segun la respuesta. 
+
+function lanzarDetectaX {
+ 
+  echo "Desea efectuar la activación de DetectaX? [s/n]"
+  read resp
+
+  while [ "$resp" != "s" ]
+   do
+     if [ "$resp" == "n" ]; then
+       return 1
+     fi
+
+     echo "Ingrese una respuesta valida"
+     read resp
+
+   done
+  return 0
+}
+
+# Para buscar el process id --> ps | grep 'bash' | cut -d" " -f2
  
 #Funcion principal
 
@@ -211,34 +230,42 @@ function main {
 
 #   grabarLog
 
-    chequearDetectaX
+    chequearVarConfig
 
     if [ $? == 1 ]; then
-      echo "El proceso DetectaX ya se esta ejecutando"
-    else
-      echo "El proceso DetectaX no se esta ejecutando" # Agregar funcion que lanze el script DetectaX
-   fi
+      echo "Variables no seteadas, agregando..."
+      setVariablesDeConfiguracion $CONFDIR/$confFile
+    else 
+      echo "Variables seteadas"
+    fi
+
+    chequearPaths
+    chequearComandos
+
+    chequearMaestros
+    chequearTablas
+ 
+    ingresarCantLoop
+    ingresartEspera
+    lanzarDetectaX
+    
+    if [ $? == 1 ]; then
      
-
-#   ingresarCantLoop
-#   ingresartEspera
-
-#  chequearVarConfig
-
-#  if [ $? == 1 ]; then
-#    echo "Variables no seteadas, agregando..."
-#    setVariablesDeConfiguracion $CONFDIR/$confFile
-#  else 
-#    echo "Variables seteadas"
-#  fi
-
-#  chequearPaths
-#  chequearComandos
-#  ingresarCantLoop
-#  chequearMaestros
-#  chequearTablas
-  
-
+        echo "Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
+             
+              Uso: DetectaX.sh CANTLOOP TESPERA
+             
+              CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio,
+              y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo."
+    else
+         chequearDetectaX
+         if [ $? == 1 ]; then
+            echo "El proceso DetectaX ya se esta ejecutando"
+         else
+            echo "El proceso DetectaX no se esta ejecutando"        
+            DetectaX.sh $CANTLOOP $TESPERA      # Lanza el demonio (tengo que ejecutarlo con & ???)
+         fi
+    fi
 }
 
 main
