@@ -9,7 +9,7 @@ combinacionEncontrada=false
 for i in $(sed "s%^\([A-Z]-[0-9]\)\(-.*$\)%\1%g" $3)
 do
 	codPais=$(echo "$i" | cut -s -f1 -d'-' )
-	codSistema=$(echo "$i" | cut -s -f2 -d'-' )
+	codSistema=$(echo "$i" | cut -s -f3 -d'-' )
 
 	if [[ "$pais" = "$codPais" ]] && [[ "$sistema" = "$codSistema" ]]
 	then

@@ -51,6 +51,8 @@ validacion1=$?
 validarInicio
 validacion2=$?
 
+CONFDIR=$GRUPO/conf 
+
 if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
   then #Si no hay interprete y el ambiente es el correcto
   
@@ -58,7 +60,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
       #Tarea realizada por medio de la funcion GlogX
       archivosInput=`ls $ACEPDIR | wc -l` 
       
-    #Procesamiento de archivos de $ACEPTDIR(Por cada archivo)
+      #Procesamiento de archivos de $ACEPTDIR(Por cada archivo)
       registrosInput=0
       registrosOutput=0 
       
@@ -76,20 +78,20 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
         
         #Verificar que el archivo no esta duplicado en PROCDIR
         verificarDuplicado $archivo $PROCDIR
-        
+
         if [ $? -eq 0 ]   #Si no esta duplicado
           then
             #Determinar codigo de pais
             longCodigoPais=`expr match $archivo [Aa-Zz]*`
             codigoPais=`expr substr $archivo 1 $longCodigoPais`
-            
+		
             #Determinar codigo de sistema(Pasarlo a funcion codigoSistema)
             codigoSystem $archivo
             codigoSistema=$?
-            
-            #Determinar separadores
+
+            #Determinar separadores	
             Linea=`grep $codigoPais'-'$codigoSistema $CONFDIR/T1.tab`
-            
+
             posicionSepCampos=`expr match $Linea [Aa-Zz]*.-[0-9]*.-`
             posicionSepCampos=`expr $posicionSepCampos + 1`
             sepCampos=`expr substr $Linea $posicionSepCampos 1`
@@ -112,25 +114,31 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              lineaFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 4 -d"-"`
              formatoFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 5 -d"-"`
              fecha=`cut -f $lineaFecha -d$sepCampos auxiliar`
-             
-              case $formatoFecha in
-                ddmmyy8)
-                  dia=`expr substr $fecha 1 2`
+
+	     if [ $formatoFecha="ddmmyy8" ]
+		then 
+		  dia=`expr substr $fecha 1 2`
                   mes=`expr substr $fecha 3 2`
-                  anio=`expr substr $fecha 5 4`;;
-                ddmmyy10)
-                  dia=`expr substr $fecha 1 2`
-                  mes=`expr substr $fecha 4 2`
-                  anio=`expr substr $fecha 7 4`;;
-                yymmdd8)
-                  anio=`expr substr $fecha 1 4`             
-                  mes=`expr substr $fecha 5 2`
-                  dia=`expr substr $fecha 7 2`;;
-                yymmdd10)
-                  anio=`expr substr $fecha 1 4`            
-                  mes=`expr substr $fecha 6 2`
-                  dia=`expr substr $fecha 9 2`;;
-               esac
+                  anio=`expr substr $fecha 5 4`
+	        else
+		   if [ $formatoFecha="ddmmyy10" ]
+			then 
+		  	   dia=`expr substr $fecha 1 2`
+                     	   mes=`expr substr $fecha 4 2`
+                           anio=`expr substr $fecha 7 4`
+	                else
+		   	   if [ $formatoFecha="yymmdd8" ]
+				then 
+		  	   	   dia=`expr substr $fecha 1 4`
+                     	   	   mes=`expr substr $fecha 5 2`
+                           	   anio=`expr substr $fecha 7 2`
+	                	else
+		  	   	   dia=`expr substr $fecha 1 4`
+                     	   	   mes=`expr substr $fecha 6 2`
+                           	   anio=`expr substr $fecha 9 2`
+		   	   fi 
+                   fi
+	     fi
 
              #interpretar estado
              lineaEstado=`grep $codigoPais'-'$codigoSistema'-CTB_ESTADO' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
@@ -142,7 +150,6 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              
              #interpretar monto del prestamo
              lineaMT_pres=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 4 -d"-"`  
-             formatoNumerico=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 5 -d"-"`    
              MT_PRES=`cut -f $lineaMT_pres -d$sepCampos auxiliar | tr -s $sepDecimal "."`
              
              #interpretar monto impago
@@ -156,7 +163,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              #interpretar monto intereses no devengados
              linea_innode=`grep $codigoPais'-'$codigoSistema'-MT_INNODE' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
              MT_INNODE=`cut -f $linea_innode -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-                      
+  
              #interpretar monto debitado 
              lineaMT_deb=`grep $codigoPais'-'$codigoSistema'-MT_DEB' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
              MT_DEB=`cut -f $lineaMT_deb -d$sepCampos auxiliar | tr -s $sepDecimal "."`
@@ -164,9 +171,9 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              #Calcular monto restante 
              posicionSeparador=`expr index $formatoNumerico "."`
              posicionSeparador=`expr $posicionSeparador + 1`
-             longDec=`expr substr $formatoNumerico $posicionSeparador ${#formatoNumerico}`     
-             MT_REST=`echo "scale=$longDec; $MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB" | bc`
-             
+             longDec=`expr substr $formatoNumerico $posicionSeparador ${#formatoNumerico}`					     
+             MT_REST=`echo "scale=2; $MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB" | bc`
+             echo $MT_REST 
              #interpretar Id cliente
              lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
              ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`

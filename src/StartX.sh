@@ -1,9 +1,9 @@
 #! /bin/bash
 
 # Parametro 1: comando invocante
-# Parametro 1: comando a ejecutar
+# Parametro 2: comando a ejecutar
 function StartX {
-   if [ $_ -eq 3 ]
+   if [ $# -eq 3 ]
    then
       return 1
    fi

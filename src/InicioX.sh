@@ -103,7 +103,7 @@ function setVariablesDeConfiguracion {
  for var in ${variables[*]}
    do    
     export $var=`grep "$var" "$1" | cut -d"=" -f 2`
-   done 
+   done
 }
 
 #Verifica que las variables de ambiente este seteadas
@@ -185,7 +185,7 @@ function ingresartEspera {
 
 function chequearDetectaX {
 
- resultado=`ps -A | grep "DetectaX.sh"`
+ resultado=`ps -A | grep "DetectaX1.sh"`
 
  if [ -z "$resultado" ]; then
    return 0
@@ -220,13 +220,13 @@ function lanzarDetectaX {
 
 function main {
 
-  variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
+  variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE CONFDIR)
 
-  comandos=(InstalarX.sh InicioX.sh DetectaX.sh Interprete.sh Reporte.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
+  comandos=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
 
-  confFile=InstalX.conf
+  confFile=InstalarX.conf
 
-  CONFDIR="/home/nacho/Escritorio/PruebasSSOO/Config"
+  CONFDIR=../conf
 
 #   grabarLog
 
@@ -235,7 +235,6 @@ function main {
     if [ $? == 1 ]; then
       echo "Variables no seteadas, agregando..."
       setVariablesDeConfiguracion $CONFDIR/$confFile
-    else 
       echo "Variables seteadas"
     fi
 
@@ -258,14 +257,16 @@ function main {
               CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio,
               y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo."
     else
-         chequearDetectaX
+        #va con StarX.sh 
+	chequearDetectaX
          if [ $? == 1 ]; then
             echo "El proceso DetectaX ya se esta ejecutando"
          else
             echo "El proceso DetectaX no se esta ejecutando"        
-            DetectaX.sh $CANTLOOP $TESPERA      # Lanza el demonio (tengo que ejecutarlo con & ???)
+            ./DetectaX.sh "$CANLOOP" "$TESPERA"     # Lanza el demonio (tengo que ejecutarlo con & ???)
          fi
     fi
+
 }
 
 main

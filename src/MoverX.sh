@@ -41,11 +41,11 @@ function MoverX () {
       fi
 	  
 	  # Copio el archivo a la carpeta de duplicados
-      cp $origen "$destino/dup/$archivo.$nroSecuencia"
+      mv $origen "$destino/dup/$archivo.$nroSecuencia"
 	  return 1
    fi
      
-   cp $origen $destino
+   mv $origen $destino
    
    return 0
 }

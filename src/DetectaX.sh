@@ -1,16 +1,29 @@
 #!/bin/bash
+
+function setVariablesDeConfiguracion {
+
+ for var in ${variables[*]}
+   do    
+    export $var=`grep "$var" "$1" | cut -d"=" -f 2`
+   done 
+}
 #
 # Demonio que detecta llegada de archivos a $ARRIDIR, y los acepta o rechaza
 #
 #
-ACTUAL="$PWD/Detectar"
-ARRIDIR="$ACTUAL/arridir"
-ACEPDIR="$ACTUAL/acepdir"
-RECHDIR="$ACTUAL/rechdir"
-MAEDIR="$ACTUAL/maedir"
+#ACTUAL="$PWD/Detectar"
+#ARRIDIR="$ACTUAL/arridir"
+#ACEPDIR="$ACTUAL/acepdir"
+#RECHDIR="$ACTUAL/rechdir"
+#MAEDIR="$ACTUAL/maedir"
+
 archMae="$MAEDIR/p-s.mae"
 
 #chequeo que me esten pasando 2 parametros
+
+echo $MAEDIR
+echo $ARRIDIR
+
 if [[ $# != 2 ]]
 	then
 	echo "Error: Falta un parámetro - debe pasarse como parametro la cantidad de ciclos y el tiempo de espera en segundos"
@@ -53,6 +66,8 @@ do
 				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
 					then
 					echo "error: nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02"
+					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" $0
+					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false
 					continue
@@ -62,6 +77,8 @@ do
 				if [[ "$periodo" > "$periodoActual" ]] || [[ "$periodo" < "200000" ]] #2000+00
 					then
 					echo "error: periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual"
+					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" $0
+					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false	
 					continue	
@@ -70,6 +87,8 @@ do
 				if [[ "$mes" -lt 0 ]] || [[ "$mes" -gt 12 ]]
 					then
 					echo "escribo log con mensaje: mes invalido"
+					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "mes invalido" $0
+					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false
 					continue
@@ -88,6 +107,10 @@ do
 				if [[ "$valido" = true ]]
 					then
 					echo "valido" #si no pongo esto se enoja xq esta vacio el if
+					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "Informativo" "Archivo valido" $0
+					echo $arch
+					echo $ACEPDIR
+					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$ACEPDIR" "DetectaX.sh"
 					#mover a ACEPDIR
 					#grabar log con mensaje de exito
 				else
@@ -96,6 +119,8 @@ do
 
 	
 			else
+				source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "tipo de arch invalido (escribir log)" $0
+				source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 				#mover archivo a $RECHDIR
 				echo "Error: tipo de arch invalido (escribir log)"
 				validez=false
@@ -110,21 +135,31 @@ do
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
 		then
 		echo "carpeta con archivos, se ejecutara el interprete si no hay otro corriendo"
-		procesos=$(ps | grep DtectaX.sh) #cambiar por Interprete
 		
-		if [[ -n "$procesos" ]]
-			then
-			echo "DetectaX.sh esta corriendo, no se pudo ejecutar" #cambiar por Interprete y msj de error si no se ejecuta
-		else
-			echo "se comienza a ejecutar Interprete"
-			echo "se devuelve el PID de Interprete"
-			#si interprete tira algun error hay que mostrar mensaje
-			echo $( ps cax | grep DetectaX.sh | cut -c1-5 ) # CHEQUEAR PORQUE TIRA UN PROCESO DE MAS Y CAMBIAR POR INTERPRETE
-		fi	
+		#procesos=$(ps | grep Interprete.sh) #cambiar por Interprete
+		setVariablesDeConfiguracion
+		sh Interprete.sh
+		#source "$GRUPO/bin/StartX.sh"; StartX "DetectaX.sh" "Interprete.sh"
+		
+		#if [[ $? -ne 1 ]]   
+		#then
+		#	echo $?
+		#fi
+
+		#if [[ -n "$procesos" ]]
+		#	then
+		#	echo "DetectaX.sh esta corriendo, no se pudo ejecutar" #cambiar por Interprete y msj de error si no se ejecuta
+		#else
+		#	echo "se comienza a ejecutar Interprete"
+		#	echo "se devuelve el PID de Interprete"
+		#	#si interprete tira algun error hay que mostrar mensaje
+		#	echo $( ps cax | grep DetectaX.sh | cut -c1-5 ) # CHEQUEAR PORQUE TIRA UN PROCESO DE MAS Y CAMBIAR POR INTERPRETE
+		#fi	
 
 	fi
 
 #### termino el ciclo, actualizo variable
+
 	canloop=$(expr $canloop - 1)
 	if [[ $canloop != 0 ]]
 	then
