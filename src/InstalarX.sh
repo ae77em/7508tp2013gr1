@@ -36,6 +36,7 @@ function validarExtensionLog {
 	res=`echo "$1" | grep "^[.]"`
 	if [  "$1" != "$res" ]; then
 		echo "ERROR - La extensión del log debe comenzar con un punto (.)"
+		grabarLog "ERROR" "La extensión del log debe comenzar con un punto (.)"
 		cond="error"
 	fi
 	unset res
@@ -260,7 +261,7 @@ Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro v
 	"
 			
 		echo "$mensaje"
-		grabarLog "$mensaje"		
+		grabarLog "INFORMATIVO" "$mensaje"		
 		cond="error"
 	fi
 
@@ -272,10 +273,12 @@ function validarNumerico {
 	res=`echo "$1" | grep "[^0-9]"`
 	if [ "$1" == "$res" ]; then
 		echo "ERROR -  \"$1\" tiene que ser un número entero."
+		grabarLog "ERROR" "\"$1\" tiene que ser un número entero."
 		cond="error"
 	fi
 	if [ "$1" -eq "0" ];then
 		echo "ERROR - el valor ingresado no puede ser cero."
+		grabarLog "ERROR" "El valor ingresado no puede ser cero."
 		cond="error"
 	fi
 
@@ -376,6 +379,7 @@ function validarListaDirecciones {
 	for i in ${listaDirecciones[*]}; do
 		if [ "$i" == "$1" ]; then
 		echo "ERROR - No puede elegir más de una vez el mismo directorio"
+		grabarLog "ERROR" "No puede elegir más de una vez el mismo directorio"
 		cond="error"	
 		fi
 	done
@@ -390,6 +394,7 @@ function validarDirectorios {
 
 	if [ -d "$1" ]; then
 		echo "ERROR - el directorio ya existe"
+		grabarLog "ERROR" "El directorio ya existe"
 		cond="error"
 	fi
 
@@ -463,7 +468,7 @@ Para completar la instalación Ud. deberá:
 	"	
 
 	echo "$mensaje"
-	grabarLog "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
 
 }
 
@@ -487,6 +492,8 @@ function modificarArchivoConfiguracion {
 	#TODO: completar!
 	echo "
 Actualizando la configuración del sistema..."
+
+	#grabarLog "INFORMATIVO" "Actualizando la configuración del sistema..."
 
 	fecha=`date +%d/%m/%y`
 	hora=`date +%R`
@@ -531,10 +538,13 @@ DATASIZE=$DATASIZE
 #Da permisos de ejecucion a los archivos 
 function darPermisosDeEjecucion {
 
-	#TODO: cambiar nombre de los archivos por los archivos de BINDIR
-	chmod 777 $BINDIR/ej1.sh
-	chmod 777 $BINDIR/ej2.sh
-	chmod 777 $BINDIR/ej3.sh
+	chmod 777 $BINDIR/*
+
+}
+
+function darPermisosDeEjecucionInicial {
+
+	chmod 777 $grupo/instalacion/bin/*
 
 }
 
@@ -545,9 +555,10 @@ function moverArchivos {
 
 	echo "
 Instalando Archivos Maestros..."
+	
+	grabarLog "INFORMATIVO" "Instalando Archivos Maestros..."
 
-	#TODO: cambiar nombre de los .mae
-	for i in ej1.mae ej2.mae ej3.mae
+	for i in PPI.mae p-s.mae
 	do
 		if [ -f "$grupo/instalacion/mae/$i" ]; then
 			 
@@ -563,7 +574,7 @@ Instalando Archivos Maestros..."
 	
 				echo "$mensaje"
 
-				grabarLog "$mensaje"
+				grabarLog "ERROR" "$mensaje"
 			fi
 
 		else
@@ -571,13 +582,44 @@ Instalando Archivos Maestros..."
 		fi
 	done  
 
-	#TODO: falta mover la tabla de separadores y la tabla de campos 
+	echo "
+Instalando Tablas de Configuración..."
+	
+	grabarLog "INFORMATIVO" "Instalando Tablas de Configuración..."
+
+	for i in T1.tab T2.tab
+	do
+		if [ -f "$grupo/instalacion/tablas/$i" ]; then
+			 
+			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/tablas/$i" "$CONFDIR" "InstalarX.sh"
+
+			resultado=$?
+
+			#echo "RESULTADO: $resultado"
+		 	
+			if [ "$resultado" -ne 0 ]; then
+
+				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+	
+				echo "$mensaje"
+
+				grabarLog "ERROR" "$mensaje"
+			fi
+
+		else
+			echo -e "El comando $i no existe\n" 
+		fi
+	done
 
 		echo "
 Instalando Programas y Funciones..."
 
-	#TODO: cambiar nombre de los .sh
-	for i in ej1.sh ej2.sh ej3.sh
+	grabarLog "INFORMATIVO" "Instalando Programas y Funciones..."
+
+	#Mover.sh debe ser el ultimo en la lista de ejecutables (se mueve a si mismo)
+	EJECUTABLES=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl GlogX.sh VlogX.sh StartX.sh StopX.sh valPais.sh MoverX.sh)
+
+	for i in ${EJECUTABLES[*]}
 	do
 		if [ -f "$grupo/instalacion/bin/$i" ]; then
 			 
@@ -593,7 +635,7 @@ Instalando Programas y Funciones..."
 	
 				echo "$mensaje"
 
-				grabarLog "$mensaje"
+				grabarLog "ERROR" "$mensaje"
 			fi
 				
 		else
@@ -607,10 +649,13 @@ function crearEstructurasDeDirectorios {
 
 	echo "Creando Estructuras de Directorio....
 "
+	grabarLog "INFORMATIVO" "Creando Estructuras de Directorio...."
+
 	listaDirectorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR)
 
 	for i in ${listaDirectorios[*]}; do
-		echo "Creando $i..."		
+		echo "Creando $i..."	
+		grabarLog "INFORMATIVO" "Creando $i..." 	
 		mkdir -p $i
 	done
 
@@ -639,7 +684,7 @@ TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
 	"	
 
 	echo "$mensaje"
-	grabarLog "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
 
 }
 
@@ -662,7 +707,7 @@ Perl Version: $version
 	"
 		echo "$mensaje"
 		
-		grabarLog "$mensaje"
+		grabarLog "INFORMATIVO" "$mensaje"
 
 		fi
 	fi
@@ -677,7 +722,7 @@ Proceso de Instalación Cancelado.
 "
 		echo "$mensaje"
 	
-		grabarLog "$mensaje"
+		grabarLog "INFORMATIVO" "$mensaje"
 
 		exit 0
 	fi
@@ -692,7 +737,8 @@ function validarRespuesta {
 	while [ "$respuesta" != "s" ]
 	do
 		if [ "$respuesta" == "n" ]; then
-			echo "* El proceso de instalación ha sido CANCELADO. *"			
+			echo "* El proceso de instalación ha sido CANCELADO. *"	
+			grabarLog "INFORMATIVO" "* El proceso de instalación ha sido CANCELADO. *"	
 			exit 0 
 		fi
 		echo "$1"
@@ -847,7 +893,7 @@ $faltatamanio
 
 	"
 	echo "$mensaje"
-	grabarLog "$mensaje"	
+	grabarLog "INFORMATIVO" "$mensaje"	
 
 }
 
@@ -889,7 +935,6 @@ Archivos procesados: $PROCDIR
 
 Reportes de salida: $REPODIR
 
-#TODO: ver que comando poner!!!
 Logs de auditoría del Sistema: $LOGDIR/InstalarX.$LOGEXT
 
 Estado de la instalación: COMPLETA
@@ -898,7 +943,7 @@ Proceso de Instalación CANCELADO.
 	"
 
 	echo "$mensaje"
-	grabarLog "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
 
 }
 
@@ -910,6 +955,8 @@ function completarInstalacion {
 	echo "
 Estado de la instalación: INCOMPLETA "
 	
+	grabarLog "INFORMATIVO" "Estado de la instalación: INCOMPLETA "
+
 	validarRespuesta "Desea completar la instalación? [s/n]"
 	
 	#4.3 - El usuario indico SI por lo que paso a chequear que Perl este instalado
@@ -919,6 +966,8 @@ Estado de la instalación: INCOMPLETA "
 	mostrarPaths
 
 	echo "Estado de la instalación: LISTA" 
+
+	grabarLog "INFORMATIVO" "Estado de la instalación: LISTA" 
 
 	#20 - Confirmar Inicio de Instalacion
 	validarRespuesta "Iniciando Instalación. ¿Está UD. seguro? [s/n]" 
@@ -1191,6 +1240,8 @@ function instalar {
 		mostrarPaths
 
 		echo "Estado de la instalación: LISTA" 
+
+		grabarLog "INFORMATIVO" "Estado de la instalación: LISTA" 
 		
 		echo "¿Los datos ingresados son correctos? [s/n]"
 				
@@ -1239,10 +1290,12 @@ function inicializarVariablesDefault {
 }
 
 #Llama al log para grabar
+#$2 = mensaje $1 = tipo (error, informativo, warning, etc)
 function grabarLog {
 
-	#TODO: hacer
-	echo "[Glog] grabo :)"
+	export CONFDIR
+	source "$grupo/instalacion/bin/GlogX.sh"; GlogX "InstalarX.sh" "$1" "$2" "InstalarX"
+
 }
 
 #Crea el directorio y el archivo de configuracion si no existe
@@ -1257,38 +1310,35 @@ function crearDirectorioArchivoConfiguracion {
 function crearLog {
 
 	>>$CONFDIR/$logFile
+	chmod 777 $CONFDIR/$logFile
 
-	#TODO: Ver!
-	#Doy permiso de ejecucion al log
-	#chmod 777 -Tiene que haber un handler para el log. GlogX.sh y VlogX.sh.
-	
 } 
 
 #Graba mensajes de inicio en el log
 function mensajesInicioLog {
 
-	mensaje="[InstalarX] Inicio de Ejecución"
+	mensaje="Inicio de Ejecución"
 	echo "$mensaje"
-	grabarLog "$mensaje"
-	mensaje="[InstalarX] Log del Comando InstalarX: $CONFDIR/$logFile"
+	grabarLog "INFORMATIVO" "$mensaje"
+	mensaje="Log del Comando InstalarX: $CONFDIR/$logFile"
 	echo "$mensaje"
-	grabarLog "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
 	mensaje="Directorio de Configuración: $CONFDIR"
 	echo "$mensaje"
-	grabarLog "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
 
 }
 
 #Chequea la existencia de archivos maestros en el directorio maestros para poder efectuar la instalación.
 function testArchivosMaestros  {
 
-	#TODO: cambiar nombre de los maestros
-	MAESTROS=(ej1.mae ej2.mae ej3.mae)
+	MAESTROS=(PPI.mae p-s.mae)
 
 	for i in ${MAESTROS[*]}; do
 		if ! [ -f $1/"$i" ]; then
 			echo "* Falta el archivo maestro: \"$i\""
 			cantErrores=$[ $cantErrores + 1 ]	
+			grabarLog "ERROR" "* Falta el archivo maestro: \"$i\""
 		fi
 	done
 
@@ -1298,13 +1348,13 @@ function testArchivosMaestros  {
 #Chequea la existencia de los archivos ejecutables en el directorio de ejecutables para poder efectuar la instalación.
 function testComandos  {
 
-	#TODO: cambiar nombre de los maestros
-	EJECUTABLES=(ej1.sh ej2.sh ej3.sh)
+	EJECUTABLES=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl GlogX.sh VlogX.sh StartX.sh StopX.sh MoverX.sh)
 
 	for i in ${EJECUTABLES[*]}; do
 		if ! [ -f $1/"$i" ]; then
 			echo "* Falta el ejecutable: \"$i\""
-			cantErrores=$[ $cantErrores + 1 ]	
+			cantErrores=$[ $cantErrores + 1 ]
+			grabarLog "ERROR" "* Falta el archivo maestro: \"$i\""	
 		fi
 	done
 
@@ -1320,13 +1370,16 @@ function verificarArchivosInstalacion {
 	testArchivosMaestros "$grupo/instalacion/mae"
 	
 	if [ $cantErrores -gt 0 ]; then
-		echo "
+		mensaje="
 Proceso de Instalación cancelado.
 Asegúrese de que contar con los archivos arriba mencionados y vuelva a intentarlo."
+		echo $mensaje
+		grabarLog "ERROR" $mensaje
 		exit 0
 	fi
 
 }
+
 
 function main {
 
@@ -1350,12 +1403,15 @@ function main {
 *   TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01  *
 ************************************************************************"
 
+	crearDirectorioArchivoConfiguracion	
+	#1 - Inicializar archivo de log
+	crearLog
+
+	darPermisosDeEjecucionInicial
+
 	#Verifico la existencia de archivos maestros y de los ejecutables
 	verificarArchivosInstalacion
 
-	crearDirectorioArchivoConfiguracion
-	#1 - Inicializar archivo de log
-	crearLog
 	#2 - Mostrar (y grabar en el log) donde se graba el log de la instalacion
 	#3 - Mostrar (y grabar en el log) el nombre del directorio de configuracion
 	mensajesInicioLog
@@ -1399,7 +1455,9 @@ function main {
 	fi
 
 	#23 - Mostrar mensaje de fin de instalacion
-	echo "[InstalarX] Instalación Finalizada"
+	echo "
+Instalación Finalizada"
+	#grabarLog "INFORMATIVO" "Instalacion Finalizada" 
 
 	#24 - FIN
 	#TODO: hacer!
