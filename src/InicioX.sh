@@ -6,22 +6,18 @@
 # FIRMA: TODO:HACER!
 #
 # DESCRIPCION: TODO:HACER!
-#
+# \
 # AUTOR: De Zan, Ignacio. 
 # PADRON: 91525
 #
 #===========================================================
 
-#Inicializar el archivo log con GlogX
+# Llama al log para grabar
+# $2 = mensaje $1 = tipo (error, informativo, warning, etc)
 
 function grabarLog {
- cmd="[InicioX]" 
- msj="Inicio de Ejecución"
- tmsj="I"
 
- #GlogX "$cmd" "$msj" "$tmsj"
- 
- echo $cmd $msj $tmsj
+   source "$grupo/instalacion/bin/GlogX.sh"; GlogX "InicioX.sh" "$1" "$2" "InicioX"
 
 }
 
@@ -116,7 +112,7 @@ function chequearVarConfig {
        if [ -z "$res" ]; then
          echo "Falta la variable de ambiente $var" >> errorVar.tmp
        else
-         echo "$var=$res"
+         echo "La variable de ambiente $var=$res existe"
        fi      
      done
 
@@ -136,9 +132,9 @@ function chequearPaths {
    
    ejec=`echo $PATH | grep $BINDIR`
 
-   # echo $ejec    Sacar!
+   # echo $ejec  ---  Sacar!
 
-   if [ -z $ejec ]; then
+   if [ -z "$ejec" ]; then
 
     echo "No esta el path de ejecutables, agregando..."
     export PATH=$PATH:$BINDIR
@@ -185,7 +181,7 @@ function ingresartEspera {
 
 function chequearDetectaX {
 
- resultado=`ps -A | grep "DetectaX1.sh"`
+ resultado=`ps -A | grep "DetectaX.sh"`
 
  if [ -z "$resultado" ]; then
    return 0
@@ -214,8 +210,57 @@ function lanzarDetectaX {
   return 0
 }
 
-# Para buscar el process id --> ps | grep 'bash' | cut -d" " -f2
- 
+function mostrarMensajeInstalacionFinalizada {
+
+	dirconf=`ls $CONFDIR`
+	dirbin=`ls $BINDIR`
+	dirmae=`ls $MAEDIR`
+        procssid=`ps | grep 'DetectaX' | cut -d" " -f2`
+
+	mensaje="
+TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01.
+
+Librería del sistema: $CONFDIR
+
+Archivos: 
+$dirconf
+
+
+Ejecutables: $BINDIR
+
+Archivos: 
+$dirbin
+
+
+Archivos maestros: $MAEDIR
+
+Archivos: 
+$dirmae
+
+
+Directorio de arribo de archivos externos: $ARRIDIR
+
+Archivos externos aceptados: $ACEPDIR
+
+Archivos externos rechazados: $RECHDIR
+
+Archivos procesados: $PROCDIR
+
+Reportes de salida: $REPODIR
+
+Logs de auditoría del Sistema: $LOGDIR/InicioX.$LOGEXT
+
+Estado del Sistema: INICIALIZADO
+
+Demonio corriendo bajo el no.: <$procssid>
+	"
+
+	echo "$mensaje"
+	grabarLog "INFORMATIVO" "$mensaje"
+
+}
+
+
 #Funcion principal
 
 function main {
@@ -224,49 +269,56 @@ function main {
 
   comandos=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
 
-  confFile=InstalarX.conf
-
   CONFDIR=../conf
 
-#   grabarLog
+  confFile=InstalarX.conf
+  
+  chequearVarConfig
 
-    chequearVarConfig
+  if [ $? == 1 ]; then
+     echo "Variables no seteadas, agregando..."
+     setVariablesDeConfiguracion $CONFDIR/$confFile
+  else
+     echo "Variables seteadas"
+  fi
 
-    if [ $? == 1 ]; then
-      echo "Variables no seteadas, agregando..."
-      setVariablesDeConfiguracion $CONFDIR/$confFile
-      echo "Variables seteadas"
-    fi
+  chequearPaths
+  chequearComandos
+  
+  grabarLog "INFORMATIVO" "Inicio de ejecucion"
 
-    chequearPaths
-    chequearComandos
-
-    chequearMaestros
-    chequearTablas
+  chequearMaestros
+  chequearTablas
  
-    ingresarCantLoop
-    ingresartEspera
-    lanzarDetectaX
+  ingresarCantLoop
+  ingresartEspera
     
-    if [ $? == 1 ]; then
-     
-        echo "Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
+  lanzarDetectaX
+    
+  if [ $? == 1 ]; then
+   # este echo va al Log?
+     echo "Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
              
               Uso: DetectaX.sh CANTLOOP TESPERA
              
               CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio,
               y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo."
-    else
-        #va con StarX.sh 
-	chequearDetectaX
-         if [ $? == 1 ]; then
-            echo "El proceso DetectaX ya se esta ejecutando"
-         else
-            echo "El proceso DetectaX no se esta ejecutando"        
-            ./DetectaX.sh "$CANLOOP" "$TESPERA"     # Lanza el demonio (tengo que ejecutarlo con & ???)
-         fi
-    fi
+   
 
+   # else
+        # va con StarX.sh 
+   # 	chequearDetectaX
+   #      if [ $? == 1 ]; then
+   #         echo "El proceso DetectaX ya se esta ejecutando"
+   #      else
+   #         echo "El proceso DetectaX no se esta ejecutando"        
+   #         ./DetectaX.sh "$CANLOOP" "$TESPERA"     # Lanza el demonio (tengo que ejecutarlo con & ???)
+   #      fi
+   
+
+   fi
+
+   mostrarMensajeInstalacionFinalizada
 }
 
 main
