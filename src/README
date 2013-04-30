@@ -1,0 +1,29 @@
+GRUPO 01
+--------
+
+A continuación se detallan los pasos a seguir para la correcta instalación y ejecución del Trabajo Práctico.
+
+INSTALACION
+
+1) Crear un directorio llamado grupo01
+2) Dentro de grupo01 crear el siguiente directorio: 
+	grupo01/instalacion
+3) Dentro de grupo01/instalacion crear los siguientes directorios:
+	grupo01/instalacion/mae
+	grupo01/instalacion/bin
+	grupo01/instalacion/tablas
+4) Copiar dentro de grupo01/instalacion el archivo: InstalarX.sh
+5) Dentro de grupo01/instalacion/mae copiar los archivos maestros (PPI.mae y p-s.mae)
+6) Dentro de grupo01/instalacion/bin copiar todos los archivos ejecutables (InicioX.sh DetectarX.sh valPais.sh Interprete.sh ReporteX.pl GlogX.sh MoverX.sh VlogX.sh StarX.sh StopX.sh)
+7) Dentro de grupo01/instalacion/tablas copiar las tablas de configuración (T1.tab y T2.tab)
+8) Abrir una consola
+9) Moverse hasta el directorio ../grupo01/instalacion/
+10) Ejecutar el siguiente comando: ./InstalarX.sh
+11) Seguir los pasos que le proporciona el asistente para completar la instalación de ControlX
+
+
+EJECUCION
+
+1) Abrir una consola
+2) Moverse hasta el directorio ../grupo01/<directorio elegido para almacenamiento de los ejecutables>
+3) Ejecutar el siguiente comando: ./Inicio.sh
