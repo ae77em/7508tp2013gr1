@@ -35,6 +35,102 @@ $rango_periodos="";
 ################
 
 #
+# Se fija si la respuesta es si o no, o si es invalida
+#
+sub validarRespuesta{
+	
+	my $rta = @_[0];
+	
+	if ( uc($rta) eq uc("n") )
+	{
+		return(0);
+		last;
+	}
+	elsif ( uc($rta) eq uc("s") ) 
+	{
+		return(1);
+	}
+	else
+	{
+		print "¡Respuesta incorrecta!";
+		return(-1);
+	}
+}
+
+#
+# Confirma si sigue la ejecucion del comando actual
+#
+sub confirma{
+	
+	my $mensaje = @_[0];
+	my $respuesta = -1;
+	while ( $respuesta == -1 )
+	{
+		print $mensaje;
+		$rta = <STDIN>;
+		chomp($rta);
+		
+		$respuesta = &validarRespuesta( $rta );		
+	}
+	return $respuesta;
+}
+
+sub buscarDatosPais{
+	
+	my @valores_registro;
+	
+	# obtengo los valores del archivo de paises y  sistemas
+	open (P_S,"/home/esteban/Documentos/TPSSOO/MAEDIR/p-s.mae");
+	
+	# busco el codigo del pais ingresado
+	while (<P_S>)
+	{
+		@valores_registro = split('-',$_);
+
+		if( uc(@valores_registro[1]) eq uc($PAIS_DESC)  )
+		{
+			$PAIS_ID = @valores_registro[0];
+			$PAIS_DESC = @valores_registro[1];
+			last;
+		}			
+	}
+}
+
+#
+# Graba el reporte en un archivo de texto. 
+# param1 : nombre del archivo donde grabar.
+# param2 : cantidad de columnas que tiene el reporte.
+#
+sub grabarReporte{
+	
+	my $nombreArchivo = @_[0];
+	my $cantColumnas = @_[1];
+	my $aux = 0;
+		
+	open(ARCHIVO_REPORTE,">>$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
+	
+	foreach $elem (@reporte)
+	{
+		chomp;
+		print ARCHIVO_REPORTE $elem;
+		$aux++;
+		
+		if ( $aux < $cantColumnas )
+		{
+			print ARCHIVO_REPORTE ";";			
+		}
+		# paso al siguiente renglon
+		else
+		{
+			printf ARCHIVO_REPORTE "\n";
+			$aux = 0;				
+		}
+	}
+	
+	close(ARCHIVO_REPORTE)
+}
+
+#
 # Ayuda
 #
 sub mostrarAyuda{
@@ -101,9 +197,9 @@ sub obtenerPrestamosPais{
 	my $aux;
 
 	#  el archivo de prestamos.pais
-	open(PRESTAMOS,"/home/esteban/Documentos/TPSSOO/PROCDIR/prestamos.".$PAIS_DESC);
-		
-	while(<PRESTAMOS>)
+	open(PRESTAMOS_PAIS,"/home/esteban/Documentos/TPSSOO/PROCDIR/prestamos.".$PAIS_DESC);
+	
+	while(<PRESTAMOS_PAIS>)
 	{	
 		chomp; # quito el eol
 
@@ -117,8 +213,8 @@ sub obtenerPrestamosPais{
 		$fecha_grab	= @valores_registro[14];
 
 		# compongo la clave de busqueda
-		$clave_p_p 	= $PRES_ID.$anio_ctb.$mes_ctb;
-
+		$clave_p_p 	= @valores_registro[5].$anio_ctb.$mes_ctb;
+		
 		# almaceno los valores en una estructura hash
 		if ( exists $registros_prestamos{$clave_p_p} )
 		{
@@ -141,7 +237,9 @@ sub obtenerPrestamosPais{
 
 	}
 
-	close(PRESTAMOS);
+	close(PRESTAMOS_PAIS);
+	
+	#print "REGISTROS PRESTAMOS PAIS\n";
 	#print map "Hash: $_ = $registros_prestamos{$_}\n", keys %registros_prestamos;
 }
 
@@ -156,8 +254,6 @@ sub obtenerPrestamosImpagos{
 	my $reg;
 	my $clave_ppi;
 
-	#print "periodo al entrar a subrutina: $periodo\n";
-
 	# inicializo los valores para los cálculos	
 	$MT_PRES=0;
 	$MT_IMPAGO=0;
@@ -169,6 +265,7 @@ sub obtenerPrestamosImpagos{
 	# abro el archivo maestro (PPI)
 	open (PPI,"/home/esteban/Documentos/TPSSOO/MAEDIR/PPI.mae") || die "ERROR: No puedo abrir el fichero PPI.\n";
 	
+	#print "CLAVES PPI:\n";
 	# realizo la lectura para ver que registros coinciden con el filtro
 	while (<PPI>)
 	{
@@ -199,7 +296,13 @@ sub obtenerPrestamosImpagos{
 		
 		# obtengo el id del prestamo	 
 		$PRES_ID = @valores_registro[7];
-
+		
+		# cambio comas por puntos
+		@valores_registro[9] =~ s/\,/\./;
+		@valores_registro[10] =~ s/\,/\./;
+		@valores_registro[11] =~ s/\,/\./;
+		@valores_registro[12] =~ s/\,/\./;
+		@valores_registro[13] =~ s/\,/\./;
 		# obtengo los valores y con ellos hago los calculos
 		$MT_PRES    = sprintf("%.2f",@valores_registro[9]);
 		$MT_IMPAGO  = sprintf("%.2f",@valores_registro[10]);
@@ -218,20 +321,18 @@ sub obtenerPrestamosImpagos{
 		
 		# creo la clave del registro
 		$clave_ppi = $PRES_ID.@valores_registro[2].@valores_registro[3];
-		#print "Clave: $clave_ppi\n";
-		
+			
 		# guardo los valores obtenidos en una estructura hash
 		if ( ! exists $registros_ppi{$clave_ppi} )
 		{
-			#print "reg ppi: $reg\n";
-			$registros_ppi{$clave_ppi} = $reg;
-			#print "Registro insertado: $reg\n";
+			$registros_ppi{$clave_ppi} = $reg;			
 		}		
 	}
 
 	# cierro el archivo
 	close(PPI);
 
+	#print "REGISTROS PPI\n";
 	#print map "Hash: $_ = $registros_ppi{$_}\n", keys %registros_ppi;
 }
 
@@ -243,16 +344,19 @@ sub mostrarRecomendacion{
 	my @reg_ppi;
 	my @reg_p_p;
 	my @aux;
-
+		
 	my $linea;
 	my $recomendacion;
+	
+	# vacio el array con los datos de reporte
+	@reporte = ();
 
 	# recorro los datos y voy viendo si es necesario el recalculo
 	foreach my $llave (keys %registros_ppi)
 	{
 		#print "Llave ppi $llave\n";
 		# me fijo que exista en ambos archivos
-		if ( exists ($registros_prestamos{$llave}))
+		if ( exists ($registros_prestamos{$llave}) )
 		{
 			# obtengo los datos del registro
 			@reg_p_p = split(";",$registros_prestamos{$llave});
@@ -270,12 +374,10 @@ sub mostrarRecomendacion{
 			{
 				$recomendacion = "BUENO";
 			}
-			
+			# 			prestamo	-	cliente	 -  estado cont mae-estado cont pais- mt rest mae   - mt rest pais 
 			$linea = $reg_ppi[7].";".$reg_p_p[12].";".$reg_ppi[5].";".$reg_p_p[4].";".$reg_ppi[14].";".$reg_p_p[11].";".$recomendacion;
 			
-			push (@aux,$linea);
-			
-			 "Linea reporte: $linea\n";
+			push (@aux,$linea);			
 		}
 	}	
 	
@@ -288,6 +390,9 @@ sub mostrarRecomendacion{
 			my @aux2;
 			@aux2 = split(";",$linea);
 			@aux2 = reverse(@aux2);
+			# cambio los puntos por comas
+			@aux2[1] =~ s/\./\,/;
+			@aux2[2] =~ s/\./\,/;
 			push (@reporte,@aux2[0]); # recomendacion
 			push (@reporte,@aux2[1]); # mt rest pais
 			push (@reporte,@aux2[2]); # mt rest mae
@@ -298,22 +403,32 @@ sub mostrarRecomendacion{
 	}
 	
 	# imprimo la cabecera
-	printf ("%-17s","Prestamo");
-	printf ("%-17s","Cliente");
-	printf ("%-17s","Est. Cont. Mae.");	
-	printf ("%-17s","Est. Cont. Pais");	
-	printf ("%-17s","Mt. Rest. Mae.");	
-	printf ("%-17s","Mt. Rest. Pais");
-	printf ("%-17s","Recomendacion");
+	print "\n";
+	printf ("%-15s","Prestamo");
+	printf ("%-15s","Cliente");
+	printf ("%-15s","ECM");	
+	printf ("%-15s","ECP");	
+	printf ("%-15s","MRM");	
+	printf ("%-15s","MRP");
+	printf ("%-15s","Recomendacion");
+	print "\n";
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
 	print "\n";
 	
 	# muestro el reporte
 	@reporte = reverse(@reporte);
 	my $cantCol = 0;
+	my $cantReg = 0;
 	foreach $elem (@reporte)
 	{
 			chomp;
-			printf ("%-17s",$elem);
+			printf ("%-15s",$elem);
 			$cantCol++;
 			
 			# paso al siguiente renglon
@@ -321,15 +436,161 @@ sub mostrarRecomendacion{
 			{
 				print "\n";
 				$cantCol = 0;
+				$cantReg++;
 			}
 	}
+	print "\n";
+	printf("%d registros",$cantReg);
+	print "\n";
 	
 }
 
 #
-# Reporte de comparacion para el recalculo.
+# Muestra el reporte de diferencia porcentual o en monto, segun el parametro
 #
-sub reporteComparacionRecalculo{
+sub mostrarDiferencia{
+	
+	my @reg_ppi;
+	my @reg_p_p;
+	my @aux;
+		
+	my $linea;
+	my $recomendacion;
+	
+	my $monto_mae;
+	my $monto_pais;
+	my $diferencia;
+	
+	my $cmd = @_[0];
+	
+	print "comando: $cmd\n";
+	
+	#  vacio el array con los datos de reporte
+	@reporte = ();
+
+	# recorro los datos y voy viendo si es necesario el recalculo
+	foreach my $llave (keys %registros_ppi)
+	{
+		#print "Llave ppi $llave\n";
+		# me fijo que exista en ambos archivos
+		if ( exists ($registros_prestamos{$llave}) )
+		{
+			# obtengo los datos del registro
+			@reg_p_p = split(";",$registros_prestamos{$llave});
+			@reg_ppi = split(";",$registros_ppi{$llave});
+			
+			@aux2[11] =~ s/\,/\./;
+			@aux2[14] =~ s/\,/\./;
+			
+			$monto_pais = sprintf("%.2f",$reg_ppi[11]);
+			$monto_mae = sprintf("%.2f",$reg_ppi[14]);
+			
+			if ( $cmd eq "-dp" )
+			{
+				$diferencia = abs( $monto_pais * 100 / $monto_mae );
+			}
+			else
+			{
+				$diferencia = abs( $monto_pais * 100 / $monto_mae );
+			}
+			
+			# 			prestamo - mt rest mae   - mt rest pais 
+			$linea = $reg_ppi[7].";".$reg_ppi[14].";".$reg_p_p[11].";".$diferencia;
+			
+			print "linea: $linea\n";
+			
+			push (@aux,$linea);
+		}
+	}	
+	
+	# ordeno el reporte alfabéticamente
+	@aux = sort { lc($a) cmp lc($b) } @aux;
+	
+	# meto el auxiliar en el reporte
+	foreach $linea (@aux)
+	{
+			my @aux2;
+			@aux2 = split(";",$linea);
+			@aux2 = reverse(@aux2);
+			# cambio los puntos por comas
+			@aux2[1] =~ s/\./\,/;
+			@aux2[2] =~ s/\./\,/;
+			
+			print "monto restante pais: $monto_pais\n";
+			print "monto restante maestro: $monto_mae\n";
+			if ( $cmd eq "-dp" )
+			{
+				if ( $monto_mae < $monto_pais )
+				{
+					@aux2[1] = sprintf ("- %-15s %%",@aux2[1] );
+					@aux2[2] = sprintf ("- %-15s %%",@aux2[2] );
+				}
+				else
+				{
+					@aux2[1] = sprintf ("%-15s %%",@aux2[1] );
+					@aux2[2] = sprintf ("%-15s %%",@aux2[2] );
+				}
+			}
+			else 
+			{
+				if ( $monto_mae < $monto_pais )
+				{
+					@aux2[1] = sprintf ("- $ %d",@aux2[1] );
+					@aux2[2] = sprintf ("- $ %d",@aux2[2] );
+				}
+				else
+				{
+					@aux2[1] = sprintf ("$ %d",@aux2[1] );
+					@aux2[2] = sprintf ("$ %d",@aux2[2] );
+				}
+			}
+			push (@reporte,@aux2[0]); # diferencia
+			push (@reporte,@aux2[1]); # mt rest pais
+			push (@reporte,@aux2[2]); # mt rest mae
+			push (@reporte,@aux2[4]); # prestamo
+	}
+	
+	# imprimo la cabecera
+	print "\n";
+	printf ("%-15s","Prestamo");
+	printf ("%-15s","MRM");	
+	printf ("%-15s","MRP");
+	printf ("%-15s","Diferencia");
+	print "\n";
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	printf ("%-15s","---------------");
+	print "\n";
+	
+	# muestro el reporte
+	@reporte = reverse(@reporte);
+	my $cantCol = 0;
+	my $cantReg = 0;
+	foreach $elem (@reporte)
+	{
+			chomp;
+			printf ("%-15s",$elem);
+			$cantCol++;
+			
+			# paso al siguiente renglon
+			if ( $cantCol == 7 )
+			{
+				print "\n";
+				$cantCol = 0;
+				$cantReg++;
+			}
+	}
+	print "\n";
+	printf("%d registros",$cantReg);
+	print "\n";
+	
+}
+
+#
+# Muestra el reporte correspondiente según el parametro enviado
+#
+sub mostrarReportes{
 	
 	my @valores_registro;	
 
@@ -337,8 +598,10 @@ sub reporteComparacionRecalculo{
 	my $sistema;
 	my $anio;
 	my $parametro;
+	my $comando;
 
 	my $subs;
+	my $rta;
 	
  	# inicializo las variables globales
 	$PAIS_ID="";
@@ -350,10 +613,16 @@ sub reporteComparacionRecalculo{
 
 	# tomo los parametros y los convierto a strings
 	my $aux = join(' ',@_); 
+	
 	# quito caracter de eol
 	chomp($aux);
+	
 	# paso parametros a array
 	my @parametros = split(/ /,$aux);
+	
+	# obtengo el comando de la subrutina
+	$comando = @parametros[0];
+	
 	# elimino el comando correspondiente a la subrutina
 	splice(@parametros, 0, 1);
 
@@ -390,43 +659,50 @@ sub reporteComparacionRecalculo{
 		}
 	}
 
-	# obtengo los valores del archivo de paises y  sistemas
-	open (P_S,"/home/esteban/Documentos/TPSSOO/MAEDIR/p-s.mae");
+	
 	
 	# busco el codigo del pais ingresado
-	while (<P_S>)
-	{
-		@valores_registro = split('-',$_);
-
-		if( uc(@valores_registro[1]) eq uc($PAIS_DESC)  )
-		{
-			$PAIS_ID = @valores_registro[0];
-			$PAIS_DESC = @valores_registro[1];
-			last;
-		}			
-	}
-
+	&buscarDatosPais;
+	
 	# si no se encontro el país, salgo de la subrutina
 	if ( $PAIS_ID eq "" )
 	{
 		print "El país ingresado no está en la base de datos.";
 		return(0);
 	}
-	
-	
-	# paso a minusculas la descripcion del pais (para abrir el archivo de prestamos)
-	$PAIS_DESC =~ tr/A-Z/a-z/;
-
+		
 	# obtengo los prestamos impagos segun los filtros
 	&obtenerPrestamosImpagos;
 
 	# obtengo los prestamos de cada pais
 	&obtenerPrestamosPais;
 
-	# muestro los resultados y recomendaciones
-	&mostrarRecomendacion;
-
+	# muestro el reporte correspondiente
+	if ( $comando eq "-cr" )
+	{
+		# muestro los resultados y recomendaciones
+		&mostrarRecomendacion;
+		
+		# paso a minusculas la descripcion del pais (para abrir el archivo de prestamos)
+		$PAIS_DESC =~ tr/A-Z/a-z/;
+		
+		# grabo si corresponde
+		if (&confirma("\n¿Desea grabar el reporte? [s/n]: "))
+		{
+			&grabarReporte("RECALCULO.".$PAIS_DESC,7);
+		}
+	}
+	elsif ( $comando eq "-dp" )
+	{
+		# muestro las diferencias porcentuales
+		&mostrarDiferencia("-dp");
+	}
+	elsif ( $comando eq "-dm" )
+	{
+		&mostrarDiferencia("-dm");
+	}
 }	
+
 # analizo los valores de los parametros que me pasaron
 sub analizarParametros{
 	
@@ -434,7 +710,7 @@ sub analizarParametros{
 	my $rta = "s";
 	my $cmd;
 	my $pmt;
-	my $respuestaIncorrecta = 1;
+	my $respuesta;
 
 	# obtengo los valores pasados como parametros
 	$cmd = @_[0];
@@ -443,37 +719,17 @@ sub analizarParametros{
 	{
 		&mostrarAyuda(@_[1]);				
 	}
-	elsif ($cmd eq "-cr" ) 
+	elsif ($cmd eq "-cr" || $cmd eq "-dp" || $cmd eq "-dm" )
 	{
-		&reporteComparacionRecalculo(@_);
+		&mostrarReportes(@_);
 	}
-	else 
+	else
 	{
 		print "El comando es incorrecto.\n";
 	}
 	
-	while ( $respuestaIncorrecta )
-	{
-		print "\n¿Desea realizar otra consulta? (s/n):";
-		$rta = <STDIN>;
-		chomp($rta);
-		print "rta=$rta\n";
-
-		if ( uc($rta) eq uc("n") )
-		{
-			return(0);
-			last;
-		}
-		elsif ( uc($rta) eq uc("s") ) 
-		{
-			return(1);
-			last;
-		}
-		else
-		{
-			print "¡Respuesta incorrecta!";
-		}
-	}
+	return &confirma("\n¿Desea realizar otra consulta? [s/n]: ");
+	
 }
 
 ######################
