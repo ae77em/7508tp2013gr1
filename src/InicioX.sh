@@ -17,7 +17,7 @@
 
 function grabarLog {
 
-   source "$grupo/instalacion/bin/GlogX.sh"; GlogX "InicioX.sh" "$1" "$2" "InicioX"
+   source GlogX.sh; GlogX "InicioX.sh" "$1" "$2" "InicioX"
 
 }
 
@@ -95,34 +95,30 @@ function chequearTablas {
 # Lee las variables de Config del archivo InstalX.conf
 
 function setVariablesDeConfiguracion {
-
- for var in ${variables[*]}
-   do    
-    export $var=`grep "$var" "$1" | cut -d"=" -f 2`
-   done
+    
+    export $2=`grep "$2" "$1" | cut -d"=" -f 2`
 }
 
 #Verifica que las variables de ambiente este seteadas
 
-function chequearVarConfig {
+function chequearVarAmbiente {
 
    for var in ${variables[*]}
      do
        res=`env | grep $var | cut -d"=" -f 2`
+
        if [ -z "$res" ]; then
-         echo "Falta la variable de ambiente $var" >> errorVar.tmp
+
+         echo "Falta la variable de ambiente $var, agregando..."
+
+         setVariablesDeConfiguracion $CONFDIR/$confFile $var
+
+         echo "Variable $var ahora esta agregada"
+
        else
          echo "La variable de ambiente $var=$res existe"
        fi      
-     done
-
-   if [ -f errorVar.tmp ]; then
-      cat errorVar.tmp
-      rm errorVar.tmp
-      return 1
-  else
-      return 0 
-  fi   
+   done
 }
 
 # Chequea que la carpeta donde se encuentran los comandos, este incluido en la variable PATH,
@@ -132,21 +128,19 @@ function chequearPaths {
    
    ejec=`echo $PATH | grep $BINDIR`
 
-   # echo $ejec  ---  Sacar!
-
-   if [ -z "$ejec" ]; then
+  if [ -z "$ejec" ]; then
 
     echo "No esta el path de ejecutables, agregando..."
+    
     export PATH=$PATH:$BINDIR
+    
     echo "Agregado"
-   # echo $PATH --- Sacar!
 
-   else
+  else
 
-    echo "Esta el path de ejecutables"
-    # echo $PATH --- Sacar!
-
-   fi 
+    echo "El path de ejecutables esta seteado"
+    
+  fi 
 }
 
 # Funcion que pide por teclado la cantidad de loops que quiere que haga el DetectaX
@@ -248,7 +242,7 @@ Archivos procesados: $PROCDIR
 
 Reportes de salida: $REPODIR
 
-Logs de auditoría del Sistema: $LOGDIR/InicioX.$LOGEXT
+Logs de auditoría del Sistema: $LOGDIR/InicioX$LOGEXT
 
 Estado del Sistema: INICIALIZADO
 
@@ -264,24 +258,17 @@ Demonio corriendo bajo el no.: <$procssid>
 #Funcion principal
 
 function main {
-
-  variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE CONFDIR)
-
+  
+  variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
+ 
   comandos=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
 
-  CONFDIR=../conf
+  CONFDIR=$GRUPO/conf
 
   confFile=InstalarX.conf
   
-  chequearVarConfig
-
-  if [ $? == 1 ]; then
-     echo "Variables no seteadas, agregando..."
-     setVariablesDeConfiguracion $CONFDIR/$confFile
-  else
-     echo "Variables seteadas"
-  fi
-
+  chequearVarAmbiente
+  
   chequearPaths
   chequearComandos
   
@@ -296,14 +283,16 @@ function main {
   lanzarDetectaX
     
   if [ $? == 1 ]; then
-   # este echo va al Log?
-     echo "Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
+
+     msj="Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
              
               Uso: DetectaX.sh CANTLOOP TESPERA
              
               CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio,
               y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo."
-   
+      
+     echo $msj
+     grabarLog "INFORMATIVO" "$msj" 
 
    # else
         # va con StarX.sh 
