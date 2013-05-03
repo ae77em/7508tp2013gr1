@@ -141,103 +141,144 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
 	           fi
 
              #interpretar estado
-             lineaEstado=`grep $codigoPais'-'$codigoSistema'-CTB_ESTADO' $CONFDIR/T2.tab | cut -f 4 -d"-"`
-             estado=`cut -f $lineaEstado -d$sepCampos auxiliar`  
-             if [ -z $lineaEstado ]||[ -z $estado ]
-             then 
-              estado=0                         
-             fi  
+             lineaEstado=`grep $codigoPais'-'$codigoSistema'-CTB_ESTADO' $CONFDIR/T2.tab | cut -f 4 -d"-"` 
+             if [ -z $lineaEstado ]              
+                then 
+                  estado="Estado sin especificar"
+                else
+                  estado=`cut -f $lineaEstado -d$sepCampos auxiliar`
+                  if [ -z $estado ]
+                    then 
+                      estado="Estado sin especificar" 
+                  fi                        
+             fi 
                      
              #interpretar codigo prestamo
              lineaCodPres=`grep $codigoPais'-'$codigoSistema'-PRES_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
-             PRES_ID=`cut -f $lineaCodPres -d$sepCampos auxiliar`
-             if [ -z $lineaCodPres ]||[ -z $PRES_ID ]
-             then 
-              PRES_ID=0           
+             if [ -z $lineaCodPres ]              
+                then 
+                  PRES_ID=0
+                else
+                  PRES_ID=`cut -f $lineaCodPres -d$sepCampos auxiliar`
+                  if [ -z $PRES_ID ]
+                    then 
+                      PRES_ID=0 
+                  fi                        
              fi 
                                 
              #interpretar monto del prestamo
              lineaMT_pres=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 4 -d"-"` 
              formatoNumerico=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 5 -d"-"`  
              MT_PRES=`cut -f $lineaMT_pres -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-             if [ -z $lineaMT_pres ]||[ -z $MT_PRES ]
-             then 
-              MT_PRES=0           
+             if [ -z $lineaMT_pres ]              
+                then 
+                  MT_PRES=0
+                else
+                  MT_PRES=`cut -f $lineaMT_pres -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+                  if [ -z $MT_PRES ]
+                    then 
+                      MT_PRES=0
+                  fi                        
              fi          
              
              #interpretar monto impago
              lineaMTimp=`grep $codigoPais'-'$codigoSistema'-MT_IMPAGO' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
-             MT_IMP=`cut -f $lineaMTimp -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-             if [ -z $lineaMTimp ]||[ -z $MT_IMP ] 
-             then 
-              MT_IMP=0             
+             if [ -z $lineaMTimp ]              
+                then 
+                  MT_IMP=0
+                else
+                  MT_IMP=`cut -f $lineaMTimp -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+                  if [ -z $MT_IMP ]
+                    then 
+                      MT_IMP=0
+                  fi                        
              fi          
              
              #interpretar monto intereses devengados
-             lineaMT_inde=`grep $codigoPais'-'$codigoSistema'-MT_INDE' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
-             MT_INDE=`cut -f $lineaMT_inde -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-             if [ -z $lineaMT_inde ]||[ -z $MT_INDE ]
-             then 
-              MT_INDE=0           
+             lineaMT_inde=`grep $codigoPais'-'$codigoSistema'-MT_INDE' $CONFDIR/T2.tab | cut -f 4 -d"-"`                       
+             if [ -z $lineaMT_inde ]              
+                then 
+                  MT_INDE=0
+                else
+                  MT_INDE=`cut -f $lineaMT_inde -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+                  if [ -z $MT_INDE ]
+                    then 
+                      MT_INDE=0
+                  fi                        
              fi          
              
              #interpretar monto intereses no devengados
              linea_innode=`grep $codigoPais'-'$codigoSistema'-MT_INNODE' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
-             MT_INNODE=`cut -f $linea_innode -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-             if [ -z $linea_innode ]||[ -z $MT_INNODE ]
-             then 
-              MT_INNODE=0           
-             fi 
+             if [ -z $linea_innode ]              
+                then 
+                  MT_INNODE=0
+                else
+                  MT_INNODE=`cut -f $linea_innode -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+                  if [ -z $MT_INNODE ]
+                    then 
+                      MT_INNODE=0 
+                  fi                        
+             fi
                
              #interpretar monto debitado 
              lineaMT_deb=`grep $codigoPais'-'$codigoSistema'-MT_DEB' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
-             MT_DEB=`cut -f $lineaMT_deb -d$sepCampos auxiliar | tr -s $sepDecimal "."`
-             if [ -z $lineaMT_deb ]||[ -z $MT_DEB ]
-             then 
-              MT_DEB=0           
+             if [ -z $lineaMT_deb ]              
+                then 
+                  MT_DEB=0
+                else
+                  MT_DEB=`cut -f $lineaMT_deb -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+                  if [ -z $MT_DEB ]
+                    then 
+                      MT_DEB=0 
+                  fi                        
              fi
                         
-             #Calcular monto restante 
-             posicionSeparador=`expr index $formatoNumerico "."`
-             posicionSeparador=`expr $posicionSeparador + 1`
-             longDec=`expr substr $formatoNumerico $posicionSeparador ${#formatoNumerico}`					     
-             MT_REST=`echo "scale=2; $MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB" | bc`
-             echo $MT_REST 
+             #Calcular monto restante 		     
+             MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB" | bc`
         
              #interpretar Id cliente
-             lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
-             ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`
-             if [ -z $lineaID_cliente ]||[ -z $ID_cliente ]
-             then 
-              ID_cliente="99999999"           
+             lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`        
+             if [ -z $lineaID_cliente ]              
+                then 
+                  ID_cliente="99999999"
+                else
+                  ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`                   
              fi 
              
              #interpretar CLiente
-             lineaCliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI-' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
-             cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                          
-             if [ -z $lineaCliente ]||[ -z "$cliente" ]
-             then 
-              cliente="Cliente sin identificar"           
+             lineaCliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI-' $CONFDIR/T2.tab | cut -f 4 -d"-"`                                   
+             if [ -z $lineaCliente ]              
+                then 
+                  cliente="Cliente sin identificacion"
+                else
+                  cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                                         
              fi 
              
              #Fecha actual
              fechaActual=`date +%d/%m/%Y`
              
              #Usuario  
-             usuario=`logname`
+             #usuario=`logname`
              
              #Separacion del monto restante en parte entera y parte decimal
              posicionSeparador=`expr index $MT_REST '.'`
-
+             echo $posicionSeparador
              if [ -z $posicionSeparador ] 
              then 
                 MT_REST_ENT=$MT_REST
                 MT_REST_DEC=`expr 1 - 1` 
              else
-                posicionSeparador=`expr $posicionSeparador + 1`
-                MT_REST_DEC=`expr substr $MT_REST $posicionSeparador $longDec`
-                posicionSeparador=`expr $posicionSeparador - 2`
-                MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
+                if [ $posicionSeparador -eq 1 ]
+                then 
+                   MT_REST_ENT=0
+                   posicionSeparador=`expr $posicionSeparador + 1`
+                   MT_REST_DEC=`expr substr $MT_REST $posicionSeparador 2`
+                else 
+                   posicionSeparador=`expr $posicionSeparador + 1`
+                   MT_REST_DEC=`expr substr $MT_REST $posicionSeparador 2`
+                   posicionSeparador=`expr $posicionSeparador - 2`
+                   MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
+                fi
              fi
              
              #Darle formato a los registros y guardar los correspondientes
