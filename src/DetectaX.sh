@@ -16,7 +16,7 @@ function setVariablesDeConfiguracion {
 #ACEPDIR="$ACTUAL/acepdir"
 #RECHDIR="$ACTUAL/rechdir"
 #MAEDIR="$ACTUAL/maedir"
-
+source "./valPais.sh";
 archMae="$MAEDIR/p-s.mae"
 
 #chequeo que me esten pasando 2 parametros
@@ -94,7 +94,7 @@ do
 					continue
 				fi
 
-				ret=$( ./valPais.sh "$pais" "$sistema" "$archMae")
+				ret=$( validar "$pais" "$sistema" "$archMae")
 				if [[ "$ret" != "Valido" ]]
 				then			
 					echo "escribo el log con mensaje "$ret""

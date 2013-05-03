@@ -1,4 +1,12 @@
 #!/bin/bash
+function validar()
+{
+
+if [[ $# != 2 ]]
+then
+	echo "error en cantidad de parametros, no se pueden validar sistema y pais"
+	exit 20
+fi
 
 pais=$1
 sistema=$2
@@ -6,6 +14,7 @@ archPath=$PWD/$3
 paisEncontrado=false
 sistemaEncontrado=false
 combinacionEncontrada=false
+
 for i in $(sed "s%^\([A-Z]-[0-9]\)\(-.*$\)%\1%g" $3)
 do
 	codPais=$(echo "$i" | cut -s -f1 -d'-' )
@@ -44,7 +53,7 @@ fi
 if [[ "$paisEncontrado" = false ]]
 then
 	echo "No existe pais"
-	exit -2
+	exit 2
 fi
 
 if [[ "$sistemaEncontrado" = false ]]
@@ -56,10 +65,9 @@ fi
 if [[ "$paisEncontrado" = true ]] && [[ "$sistemaEncontrado" = true ]] 
 then
 	echo "No existe combinacion"
-	#exit 4
 fi
 
 
-
+}
 
 
