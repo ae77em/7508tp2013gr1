@@ -1,22 +1,9 @@
 #!/bin/sh
 #Definicion de funciones
 
-#Valida si hay otro interprete corriendo
-validarInterprete() {
-  SERVICE='interpretar.sh'
-  if ps ax | grep -v grep | grep $SERVICE > /dev/null
-    then
-      echo "ERROR: Hay otro interprete ejecutandose"
-      return 1
-    else
-      echo "Interprete validado"
-      return 0
-  fi
-}
-
 #Valida si la inicializacion fue hecha correctamente
 validarInicio() {
-  echo "Inicio validado"
+  echo "TODO: Inicio validado"
   return 0;
 }
 
@@ -46,13 +33,13 @@ codigoSystem() {
 
 #Se valida si ya hay otro interprete corriendo y si el ambiente esta inicializado correctamente
 
-validarInterprete
-validacion1=$?
+#CONFDIR=../conf
+
 validarInicio
 validacion2=$?
 
 
-if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
+if [ $validacion2 -eq 0 ]
   then #Si no hay interprete y el ambiente es el correcto
   
       #Inicializar Log con "Inicio de interprete" y cantidad de archivos de entrada
@@ -82,7 +69,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
           then
           
             #Determinar codigo de pais
-            longCodigoPais=`expr match $archivo [Aa-Zz]*`
+            longCodigoPais=`expr match $archivo [Aa-Zz]*`	  
             codigoPais=`expr substr $archivo 1 $longCodigoPais`
 
             #Determinar codigo de sistema(Pasarlo a funcion codigoSistema)
@@ -112,33 +99,35 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              
              #interpretar fecha
              lineaFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 4 -d"-"`
-             formatoFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 5 -d"-"`
+             formatoFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 5 -d"-"` 
+	           formatoFecha=${formatoFecha%%'.'*}	
              fecha=`cut -f $lineaFecha -d$sepCampos auxiliar`
 
-	           if [ $formatoFecha = "ddmmyy8." ]
+	           if [ "$formatoFecha" = "ddmmyy8" ]
 		         then 
 		          dia=`expr substr $fecha 1 2`
-              mes=`expr substr $fecha 3 2`
-              anio=`expr substr $fecha 5 4`
-	           else
-		          if [ $formatoFecha = "ddmmyy10." ]
+              		  mes=`expr substr $fecha 3 2`
+              		  anio=`expr substr $fecha 5 4`
+		          else				
+		          	if [ "$formatoFecha" = "ddmmyy10" ]
 			        then 
 		        	  dia=`expr substr $fecha 1 2`
-           	    mes=`expr substr $fecha 4 2`
-                anio=`expr substr $fecha 7 4`
-	            else
-		         	  if [ $formatoFecha = "yymmdd8." ]
-				        then 
+           	    		  mes=`expr substr $fecha 4 2`
+                		  anio=`expr substr $fecha 7 4`
+	            	  	else
+		         	  if [ "$formatoFecha" = "yymmdd8" ]
+				     then 
 		        	   	anio=`expr substr $fecha 1 4`
-         	   	    mes=`expr substr $fecha 5 2`
-               	  dia=`expr substr $fecha 7 2`
-	              else
+         	   	    		mes=`expr substr $fecha 5 2`
+               	 		        dia=`expr substr $fecha 7 2`
+	              		     else
 		        	   	anio=`expr substr $fecha 1 4`
-         	   	    mes=`expr substr $fecha 6 2`
-               	  dia=`expr substr $fecha 9 2`
+         	   	    		mes=`expr substr $fecha 6 2`
+               	  			dia=`expr substr $fecha 9 2`
 		         	  fi 
-              fi
+              		  fi
 	           fi
+
 
              #interpretar estado
              lineaEstado=`grep $codigoPais'-'$codigoSistema'-CTB_ESTADO' $CONFDIR/T2.tab | cut -f 4 -d"-"` 
@@ -180,6 +169,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                       MT_PRES=0
                   fi                        
              fi          
+             MT_PRES=`echo $MT_PRES | sed 's/\r$//g'`
              
              #interpretar monto impago
              lineaMTimp=`grep $codigoPais'-'$codigoSistema'-MT_IMPAGO' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
@@ -193,6 +183,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                       MT_IMP=0
                   fi                        
              fi          
+             MT_IMP=`echo $MT_IMP | sed 's/\r$//g'`
              
              #interpretar monto intereses devengados
              lineaMT_inde=`grep $codigoPais'-'$codigoSistema'-MT_INDE' $CONFDIR/T2.tab | cut -f 4 -d"-"`                       
@@ -201,11 +192,13 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                   MT_INDE=0
                 else
                   MT_INDE=`cut -f $lineaMT_inde -d$sepCampos auxiliar | tr -s $sepDecimal "."`
+		
                   if [ -z $MT_INDE ]
                     then 
                       MT_INDE=0
                   fi                        
              fi          
+             MT_INDE=`echo $MT_INDE | sed 's/\r$//g'`
              
              #interpretar monto intereses no devengados
              linea_innode=`grep $codigoPais'-'$codigoSistema'-MT_INNODE' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
@@ -219,7 +212,8 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                       MT_INNODE=0 
                   fi                        
              fi
-               
+             MT_INNODE=`echo $MT_INNODE | sed 's/\r$//g'` 
+              
              #interpretar monto debitado 
              lineaMT_deb=`grep $codigoPais'-'$codigoSistema'-MT_DEB' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
              if [ -z $lineaMT_deb ]              
@@ -232,10 +226,11 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                       MT_DEB=0 
                   fi                        
              fi
-                        
-             #Calcular monto restante 		     
-             MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB" | bc`
-        
+             MT_DEB=`echo $MT_DEB | sed 's/\r$//g'`        
+                       
+             #Calcular monto restante              		     
+             MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB"| bc`
+ 
              #interpretar Id cliente
              lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`        
              if [ -z $lineaID_cliente ]              
@@ -258,15 +253,14 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              fechaActual=`date +%d/%m/%Y`
              
              #Usuario  
-             #usuario=`logname`
+             usuario=`whoami`
              
              #Separacion del monto restante en parte entera y parte decimal
              posicionSeparador=`expr index $MT_REST '.'`
-             echo $posicionSeparador
              if [ -z $posicionSeparador ] 
              then 
                 MT_REST_ENT=$MT_REST
-                MT_REST_DEC=`expr 1 - 1` 
+                MT_REST_DEC=0
              else
                 if [ $posicionSeparador -eq 1 ]
                 then 
@@ -280,6 +274,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
                    MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
                 fi
              fi
+             echo "$MT_REST_ENT.$MT_REST_DEC"
              
              #Darle formato a los registros y guardar los correspondientes
              if [ $MT_REST_ENT -le 0 ]&&[ $MT_REST_DEC -le 0 ]
@@ -288,7 +283,7 @@ if [ $validacion1 -eq 0 ]&&[ $validacion2 -eq 0 ]
              else
                registro=`echo "$codigoSistema;$anio;$mes;$dia;$estado;$PRES_ID;$MT_PRES;$MT_IMP;$MT_INDE;$MT_INNODE;$MT_DEB;$MT_REST;$ID_cliente;"$cliente";$fechaActual;$usuario"`
                
-               linePais=`grep $codigoPais $CONFDIR/p-s.mae`
+               linePais=`grep $codigoPais $MAEDIR/p-s.mae`
                pais=`echo $linePais | cut -f 2 -d"-"`
                echo $registro >> $PROCDIR/prestamos.$pais
                registrosOutput=`expr $registrosOutput + 1`   
