@@ -6,6 +6,10 @@
 #                      #
 ########################
 
+$MAEDIR="";		# Directorio de archivos maestros
+$PROCDIR="";	# Directorio de archivos para procesamiento
+$REPODIR="";	# Directorio donde se guardan los reportes
+
 $PAIS_ID="";    # id del pais
 $PAIS_DESC="";  # descripcion del pais
 $SIS_ID="";		# id del sistema
@@ -114,7 +118,7 @@ sub buscarDatosPais{
     my @valores_registro;
     
     # obtengo los valores del archivo de paises y  sistemas
-    open (P_S,"/home/esteban/Documentos/TPSSOO/MAEDIR/p-s.mae");
+    open (P_S,"$MAEDIR/p-s.mae");
     
     # busco el codigo del pais ingresado
     while (<P_S>)
@@ -131,6 +135,53 @@ sub buscarDatosPais{
 }
 
 #
+# Obtiene los directorios de los archivos maestros y de procesamiento,
+# y donde se guardaran los reportes.
+#
+sub obtenerDirectorios{
+	
+	my @valores_registro;
+	my $cantDir = 0;
+	
+	print "entre";
+	# Abro el archivo InstalarX.conf
+	open(CONF,"../conf/InstalarX.conf") || die "ERROR: No puedo abrir el fichero InstalarX.conf\n";
+	
+	# obtengo el maedir, procdir y repodir
+	while (<CONF>)
+	{
+		# quito eol
+		chomp;
+		
+		@valores_registro = split("=",$_);
+		if (@valores_registro[0] eq "MAEDIR")
+		{
+			$MAEDIR = @valores_registro[1];
+			print "mae: $MAEDIR\n";
+			$cantDir++;
+		}
+		elsif (@valores_registro[0] eq "PROCDIR")
+		{
+			$PROCDIR = @valores_registro[1];
+			print "proc: $PROCDIR\n";
+			$cantDir++;
+		}		
+		elsif (@valores_registro[0] eq "REPODIR")
+		{
+			$REPODIR = @valores_registro[1];
+			print "repo: $REPODIR\n";
+			$cantDir++;
+		}
+		if ($cantDir == 3)
+		{
+			last;
+		}
+	}
+	
+	close(CONF);
+}
+
+#
 # Graba el reporte en un archivo de texto. 
 # param1 : nombre del archivo donde grabar.
 # param2 : cantidad de columnas que tiene el reporte.
@@ -143,7 +194,7 @@ sub grabarRecalculo{
     my $valor_recomendacion="";
     my $fila_a_grabar = "";
         
-    open(ARCHIVO_REPORTE,">>$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
+    open(ARCHIVO_REPORTE,">>$REPODIR/$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
     
     foreach $elem (@reporte)
     {
@@ -191,12 +242,12 @@ sub mostrarAyuda{
         print " -cr\n";
         print " -dm\n";
         print " -dp\n";
-        print " -g\n";
+        print " -g\n\n";
     }
     elsif ( uc($param) eq uc("-a") )
     {
         print "Muestra información acerca del parámetro pasado como parámetro.\n";
-        print "Si se escribe el subcomando sólo, muestra la ayuda general.\n";
+        print "Si se escribe el subcomando sólo, muestra la ayuda general.\n\n";
     }
     elsif ( uc($param) eq uc("-cr") )
     {
@@ -211,7 +262,7 @@ sub mostrarAyuda{
 		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
 		print "			comprendido el mes contable del reporte.\n";
 		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
-		print "		    para un rango de meses.";		
+		print "		    para un rango de meses.\n\n";
     }
     elsif ( uc($param) eq uc("-dm") )
     {
@@ -228,7 +279,7 @@ sub mostrarAyuda{
 		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
 		print "			comprendido el mes contable del reporte.\n";
 		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
-		print "		    para un rango de meses.";		
+		print "		    para un rango de meses.\n\n";
     }
     elsif ( uc($param) eq uc("-dp") )
     {
@@ -245,7 +296,7 @@ sub mostrarAyuda{
 		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
 		print "			comprendido el mes contable del reporte.\n";
 		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
-		print "		    para un rango de meses.";		
+		print "		    para un rango de meses.\n\n";
     }
 
     elsif ( uc($param) eq uc("-g") )
@@ -254,7 +305,7 @@ sub mostrarAyuda{
     }
     else 
     {
-        print "El comando ingresado no existe para el Generador de reportes.\n";
+        print "El comando ingresado no existe para el Generador de reportes.\n\n";
     }
 
 }
@@ -277,7 +328,7 @@ sub obtenerPrestamosPais{
     $PAIS_DESC =~ tr/A-Z/a-z/;
     
     #  el archivo de prestamos.pais
-    open(PRESTAMOS_PAIS,"/home/esteban/Documentos/TPSSOO/PROCDIR/prestamos.".$PAIS_DESC);
+    open(PRESTAMOS_PAIS,"$PROCDIR/prestamos.".$PAIS_DESC);
     
     while(<PRESTAMOS_PAIS>)
     {   
@@ -335,7 +386,7 @@ sub obtenerPrestamosImpagos{
     my $clave_ppi;
 
     # abro el archivo maestro (PPI)
-    open (PPI,"/home/esteban/Documentos/TPSSOO/MAEDIR/PPI.mae") || die "ERROR: No puedo abrir el fichero PPI.\n";
+    open (PPI,"$MAEDIR/PPI.mae") || die "ERROR: No puedo abrir el fichero PPI.\n";
     
     #print "CLAVES PPI:\n";
     # realizo la lectura para ver que registros coinciden con el filtro
@@ -491,7 +542,7 @@ sub mostrarRecomendacion{
 	# si me pidieron guardar el reporte creo el archivo
     if ( $GUARDAR_REPORTE )
     {
-		open(REPORTEX,">>/home/esteban/Documentos/TPSSOO/REPODIR/ReporteX_RECALCULO.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
+		open(REPORTEX,">>$REPODIR/ReporteX_RECALCULO.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
 		print REPORTEX "$titulos";		
 	}
 	
@@ -654,7 +705,7 @@ sub mostrarDiferencia{
     # si me pidieron guardar el reporte creo el archivo
     if ( $GUARDAR_REPORTE )
     {
-		open(REPORTEX,">>/home/esteban/Documentos/TPSSOO/REPODIR/ReporteX_$tipo_rep.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
+		open(REPORTEX,">>$REPODIR/ReporteX_$tipo_rep.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
 		print REPORTEX "$titulos";		
 	}
     
@@ -921,7 +972,10 @@ sub analizarParametros{
 #                    #
 ######################
 
-    # tomo los parametros y los convierto a strings
+	print "comence";
+	# primero obtengo los directorios necesarios para el procesamiento
+	&obtenerDirectorios;
+	# tomo los parametros y los convierto a strings
     my $aux = join(' ',@ARGV); 
     # quito caracter de eol
     chomp($aux);
