@@ -24,6 +24,7 @@ $VALOR_DIFERENCIA=0;# diferencia para los comandos de diferencia
 
 $PERIODO="";
 $RANGO_PERIODOS="";
+$COMANDOS_USADOS="";
 
 %registros_ppi;
 %registros_prestamos;
@@ -59,6 +60,7 @@ sub inicializarGlobales{
 
     $PERIODO="";
     $RANGO_PERIODOS="";
+    $COMANDOS_USADOS="";
     
     %registros_ppi=();
     %registros_prestamos=();
@@ -138,23 +140,31 @@ sub grabarRecalculo{
     my $nombreArchivo = @_[0];
     my $cantColumnas = @_[1];
     my $aux = 0;
+    my $valor_recomendacion="";
+    my $fila_a_grabar = "";
         
     open(ARCHIVO_REPORTE,">>$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
     
     foreach $elem (@reporte)
     {
         chomp;
-        print ARCHIVO_REPORTE $elem;
+        $fila_a_grabar.=$elem;
         $aux++;
         
         if ( $aux < $cantColumnas )
         {
-            print ARCHIVO_REPORTE ";";
+            $fila_a_grabar.=";";
         }
         # paso al siguiente renglon
         else
         {
-            printf ARCHIVO_REPORTE "\n";
+			# si es un recalculo lo grabo, si no, no
+			if ( $elem eq "RECALCULO" )
+			{
+				$fila_a_grabar.="\n";
+				print ARCHIVO_REPORTE "$fila_a_grabar";
+			}
+			$fila_a_grabar="";
             $aux = 0;
         }
     }
@@ -173,8 +183,8 @@ sub mostrarAyuda{
 
     if ( uc($param) eq "" )
     {
-        print "Ayuda del Generador de reportes del grupo 1.\n";
-        print "Modo de uso:     ReporteX <subcomando> [opciones] [argumenos]\n";
+        print "Ayuda del Generador de reportes del Grupo 1.\n";
+        print "Modo de uso:     ReporteX <subcomando> [opciones][argumenos]\n";
         print "Tipee 'ReporteX -a <subcomando>' para obtener información acerca del subcomando.\n\n";
         print "Subcomandos disponibles:\n";
         print " -a\n";
@@ -190,20 +200,57 @@ sub mostrarAyuda{
     }
     elsif ( uc($param) eq uc("-cr") )
     {
-        print "En construcción.\n\n\n";
+        print "Este subcomando genera el reporte de recomendación para recálculo,\n";
+        print "indicando para cuáles de las cuentas ingresadas es necesario hacer\n";
+        print "un recálculo de la deuda en la base maestra.\n\n";
+        print "Parámetros obligatorios:\n";
+		print "		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n";
+		print "Parámetros para otros filtros:\n";
+		print "		-s=<sistema>\n";
+		print "		-a=<año>\n";
+		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
+		print "			comprendido el mes contable del reporte.\n";
+		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
+		print "		    para un rango de meses.";		
     }
     elsif ( uc($param) eq uc("-dm") )
     {
-        print "En construcción.\n";
+        print "Este comando genera un reporte con los registros en cuyos casos casos\n";
+        print "la diferencia (en valor absoluto) entre el monto restante del maestro\n";
+        print "y el monto restante del país es mayor a X monto. El valor X se pasa como\n";
+        print "parámetro. En caso de no pasarse nada se muestran todos los registros.\n\n";
+        print "Parámetros obligatorios:\n";
+		print "		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n";
+		print "Parámetros para otros filtros:\n";
+		print "		-x=<valor de diferencia>\n";
+		print "		-s=<sistema>\n";
+		print "		-a=<año>\n";
+		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
+		print "			comprendido el mes contable del reporte.\n";
+		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
+		print "		    para un rango de meses.";		
     }
     elsif ( uc($param) eq uc("-dp") )
     {
-        print "En construcción.\n";
+        print "Este comando genera un reporte con los registros en cuyos casos casos\n";
+        print "la diferencia (en valor absoluto) entre el monto restante del maestro\n";
+        print "y el monto restante del país es mayor al X %. El valor X se pasa como\n";
+        print "parámetro. En caso de no pasarse nada se muestran todos los registros.\n\n";
+        print "Parámetros obligatorios:\n";
+		print "		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n";
+		print "Parámetros para otros filtros:\n";
+		print "		-x=<valor de diferencia>\n";
+		print "		-s=<sistema>\n";
+		print "		-a=<año>\n";
+		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
+		print "			comprendido el mes contable del reporte.\n";
+		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
+		print "		    para un rango de meses.";		
     }
 
     elsif ( uc($param) eq uc("-g") )
     {
-        print "En construcción.\n";
+        print "Si se incluye se guardará el reporte mostrado en pantalla en archivo de texto.\n\n";
     }
     else 
     {
@@ -425,23 +472,12 @@ sub mostrarRecomendacion{
     }
     
     # imprimo la cabecera
-    print "\n";
-    printf ("%-15s","Prestamo");
-    printf ("%-15s","Cliente");
-    printf ("%-15s","ECM"); 
-    printf ("%-15s","ECP"); 
-    printf ("%-15s","MRM"); 
-    printf ("%-15s","MRP");
-    printf ("%-15s","Recomendacion");
-    print "\n";
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    print "\n";
+    my $titulos = "\nREPORTE DE RECÁLCULOS\n\nParámetros ingresados\n";
+    $titulos .= $COMANDOS_USADOS."\n\n";
+    $titulos .= sprintf 	"%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s", 
+							"Prestamo","Cliente","ECM","ECP","MRM","MRP","Recomendacion",
+							"\n---------------------------------------------------------------------------------------------------------\n";
+    print "$titulos";
     
     # muestro el reporte
     @reporte = reverse(@reporte);
@@ -451,27 +487,12 @@ sub mostrarRecomendacion{
 	$year += 1900;
 	$mon++;
 	my $descriptor = $year.$mon.$mday.$hour.$min.$sec;
-	
+		
 	# si me pidieron guardar el reporte creo el archivo
     if ( $GUARDAR_REPORTE )
     {
 		open(REPORTEX,">>/home/esteban/Documentos/TPSSOO/REPODIR/ReporteX_RECALCULO.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
-		printf (REPORTEX "%-15s","Prestamo");
-		printf (REPORTEX "%-15s","Cliente");
-		printf (REPORTEX "%-15s","ECM"); 
-		printf (REPORTEX "%-15s","ECP"); 
-		printf (REPORTEX "%-15s","MRM"); 
-		printf (REPORTEX "%-15s","MRP");
-		printf (REPORTEX "%-15s","Recomendacion");
-		print REPORTEX "\n";
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		print REPORTEX "\n";
+		print REPORTEX "$titulos";		
 	}
 	
     foreach $elem (@reporte)
@@ -614,17 +635,12 @@ sub mostrarDiferencia{
     }
     
     # imprimo la cabecera
-    print "\n";
-    printf ("%-15s","Prestamo");
-    printf ("%-15s","MRM"); 
-    printf ("%-15s","MRP");
-    printf ("%-15s","Diferencia");
-    print "\n";
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    printf ("%-15s","---------------");
-    print "\n";
+    my $titulos = "\nREPORTE DE DIFERENCIA EN ".$tipo_rep."\n\nParámetros ingresados\n";
+    $titulos .= $COMANDOS_USADOS."\n\n";
+    $titulos .= sprintf 	"%-15s%-15s%-15s%-15s%s", 
+							"Prestamo","MRM","MRP","Diferencia",
+							"\n------------------------------------------------------------\n";
+    print "$titulos";
         
     # muestro el reporte
     @reporte = reverse(@reporte);
@@ -639,16 +655,7 @@ sub mostrarDiferencia{
     if ( $GUARDAR_REPORTE )
     {
 		open(REPORTEX,">>/home/esteban/Documentos/TPSSOO/REPODIR/ReporteX_$tipo_rep.$descriptor") || die "ERROR: No puedo abrir el fichero ReporteX_$tipo_rep.$descriptor\n";
-		printf (REPORTEX "%-15s","Prestamo");
-		printf (REPORTEX "%-15s","MRM"); 
-		printf (REPORTEX "%-15s","MRP");
-		printf (REPORTEX "%-15s","Diferencia");
-		print REPORTEX "\n";
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		printf (REPORTEX "%-15s","---------------");
-		print REPORTEX "\n";
+		print REPORTEX "$titulos";		
 	}
     
     foreach $elem (@reporte)
@@ -740,10 +747,11 @@ sub mostrarReportes{
 			{
 				$PAIS_DESC = substr $parametro, index($parametro,'=')+1, (length $parametro)-3;
 				$parametro_de_pais = 1;
+				$COMANDOS_USADOS.="País: $PAIS_DESC. ";
 			}
 			else
 			{
-				print "Puede indicar solo un pais por consulta.\n";
+				print "Puede indicar solo un país por consulta.\n";
 				return(0);
 			}
         }
@@ -754,6 +762,8 @@ sub mostrarReportes{
 				if ( $parametro_val_ref == 0 )
 				{
 					$VALOR_DIFERENCIA = sprintf("%.2f",(substr $parametro, index($parametro,'=')+1, (length $parametro)-2));
+					$COMANDOS_USADOS.="Valor Diferencia: $VALOR_DIFERENCIA. ";
+					$parametro_val_ref = 1;
 				}
 				else
 				{
@@ -778,6 +788,7 @@ sub mostrarReportes{
 			{
 				$SIS_ID = substr $parametro, index($parametro,'=')+1, (length $parametro)-3;
 				$parametro_sistema=1;
+				$COMANDOS_USADOS.="Id del Sistema: $SIS_ID. ";
 			}
         }
         elsif ( $parametro =~ m/-a=/)
@@ -791,6 +802,7 @@ sub mostrarReportes{
 			{
 				$CTB_ANIO = substr $parametro, index($parametro,'=')+1, (length $parametro)-3;
 				$parametro_de_rangos = 1;
+				$COMANDOS_USADOS.="Año: $CTB_ANIO. ";
 			}
         }
         elsif ( $parametro =~ m/-pe=/ )
@@ -804,6 +816,7 @@ sub mostrarReportes{
 			{
 				$PERIODO = substr $parametro, index($parametro,'=')+1, (length $parametro)-4;
 				$parametro_de_rangos = 1;
+				$COMANDOS_USADOS.="Período: $PERIODO. ";
 			}
         }
         elsif ( $parametro =~ m/-rp=/ )
@@ -817,11 +830,13 @@ sub mostrarReportes{
 			{
 				$RANGO_PERIODOS = substr $parametro, index($parametro,'=')+1, (length $parametro)-4;
 				$parametro_de_rangos = 1;
+				$COMANDOS_USADOS.="Rango de Períodos: $RANGO_PERIODOS. ";
 			}
         }
         elsif ( $parametro =~ m/-g/)
         {
             $GUARDAR_REPORTE = 1;
+            $COMANDOS_USADOS.="El reporte fue guardado. ";
         }
         else
         {
@@ -832,7 +847,7 @@ sub mostrarReportes{
     
     if ( ! $parametro_de_pais )
     {
-		print "Debe indicar un pais.\n";
+		print "Debe indicar un país.\n";
 		return(0);
 	}
        
@@ -924,6 +939,7 @@ sub analizarParametros{
         @parametros = split(/ /,$aux);
         $seguir = &analizarParametros(@parametros);         
     }
+
 
 
 
