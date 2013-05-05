@@ -2,7 +2,7 @@
 function validar()
 {
 
-if [[ $# != 2 ]]
+if [[ $# != 3 ]]
 then
 	echo "error en cantidad de parametros, no se pueden validar sistema y pais"
 	exit 20

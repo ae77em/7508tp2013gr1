@@ -1,12 +1,5 @@
 #!/bin/bash
 
-function setVariablesDeConfiguracion {
-
- for var in ${variables[*]}
-   do    
-    export $var=`grep "$var" "$1" | cut -d"=" -f 2`
-   done 
-}
 #
 # Demonio que detecta llegada de archivos a $ARRIDIR, y los acepta o rechaza
 #
@@ -16,7 +9,11 @@ function setVariablesDeConfiguracion {
 #ACEPDIR="$ACTUAL/acepdir"
 #RECHDIR="$ACTUAL/rechdir"
 #MAEDIR="$ACTUAL/maedir"
-source "./valPais.sh";
+
+source "valPais.sh";
+source "$BINDIR/GlogX.sh";
+source "$BINDIR/MoverX.sh";
+source "$BINDIR/StartX.sh";
 archMae="$MAEDIR/p-s.mae"
 
 #chequeo que me esten pasando 2 parametros
@@ -34,9 +31,12 @@ mesActual=$(date +%m)
 anioActual=$(date +%Y)
 periodoActual=$anioActual$mesActual
 
+
 canloop=$1
 tespera=$2
 
+echo $canloop
+echo $tespera
 ########## comienza a correr
 while [[ "$canloop" != 0 ]]
 do
@@ -49,6 +49,8 @@ do
 		for arch in "$ARRIDIR"/*   #para todos los archivos en el directorio $ARRIDIR
 		do
 			tipoArch="$(file -b "$arch")" #me da el tipo de archivo
+			tipoArch=$(echo $tipoArch | cut -f 1 -d",")
+			echo $tipoArch	
 			echo "arch = $arch"
 			valido=true;
 			if [[ "$tipoArch" = "ASCII text" ]] || [[ "$tipoArch" = "empty" ]] #si el archivo es de texto o vacio, es valido
@@ -66,8 +68,8 @@ do
 				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
 					then
 					echo "error: nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02"
-					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" $0
-					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
+					GlogX "DetectaX.sh" "ERROR" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" $0
+					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false
 					continue
@@ -77,8 +79,8 @@ do
 				if [[ "$periodo" > "$periodoActual" ]] || [[ "$periodo" < "200000" ]] #2000+00
 					then
 					echo "error: periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual"
-					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" $0
-					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
+					 GlogX "DetectaX.sh" "ERROR" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" $0
+					 MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false	
 					continue	
@@ -87,8 +89,8 @@ do
 				if [[ "$mes" -lt 0 ]] || [[ "$mes" -gt 12 ]]
 					then
 					echo "escribo log con mensaje: mes invalido"
-					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "mes invalido" $0
-					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
+					 GlogX "DetectaX.sh" "ERROR" "mes invalido" $0
+					 MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					#mover a RECHDIR
 					valido=false
 					continue
@@ -107,10 +109,10 @@ do
 				if [[ "$valido" = true ]]
 					then
 					echo "valido" #si no pongo esto se enoja xq esta vacio el if
-					source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "Informativo" "Archivo valido" $0
+					 GlogX "DetectaX.sh" "Informativo" "Archivo valido" $0
 					echo $arch
 					echo $ACEPDIR
-					source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$ACEPDIR" "DetectaX.sh"
+					MoverX  "$arch" "$ACEPDIR" "DetectaX.sh"
 					#mover a ACEPDIR
 					#grabar log con mensaje de exito
 				else
@@ -119,8 +121,8 @@ do
 
 	
 			else
-				source "$GRUPO/bin/GlogX.sh"; GlogX "DetectaX.sh" "ERROR" "tipo de arch invalido (escribir log)" $0
-				source "$GRUPO/bin/MoverX.sh"; MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
+				GlogX "DetectaX.sh" "ERROR" "tipo de arch invalido (escribir log)" $0
+				MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 				#mover archivo a $RECHDIR
 				echo "Error: tipo de arch invalido (escribir log)"
 				validez=false
@@ -137,9 +139,8 @@ do
 		echo "carpeta con archivos, se ejecutara el interprete si no hay otro corriendo"
 		
 		#procesos=$(ps | grep Interprete.sh) #cambiar por Interprete
-		setVariablesDeConfiguracion
-		sh Interprete.sh
-		#source "$GRUPO/bin/StartX.sh"; StartX "DetectaX.sh" "Interprete.sh"
+
+		StartX "DetectaX.sh" "Interprete.sh"
 		
 		#if [[ $? -ne 1 ]]   
 		#then
@@ -159,7 +160,6 @@ do
 	fi
 
 #### termino el ciclo, actualizo variable
-
 	canloop=$(expr $canloop - 1)
 	if [[ $canloop != 0 ]]
 	then

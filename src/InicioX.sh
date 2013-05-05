@@ -209,7 +209,7 @@ function mostrarMensajeInstalacionFinalizada {
 	dirconf=`ls $CONFDIR`
 	dirbin=`ls $BINDIR`
 	dirmae=`ls $MAEDIR`
-        procssid=`ps | grep 'DetectaX' | cut -d" " -f2`
+        #procssid=`ps | grep 'DetectaX' | cut -d" " -f2`
 
 	mensaje="
 TP SO7508 Primer Cuatrimestre 2013. Tema X Copyright (c) Grupo 01.
@@ -245,9 +245,9 @@ Reportes de salida: $REPODIR
 Logs de auditoría del Sistema: $LOGDIR/InicioX$LOGEXT
 
 Estado del Sistema: INICIALIZADO
-
-Demonio corriendo bajo el no.: <$procssid>
-	"
+"
+#Demonio corriendo bajo el no.: <$procssid>
+#	"
 
 	echo "$mensaje"
 	grabarLog "INFORMATIVO" "$mensaje"
@@ -262,8 +262,7 @@ function main {
   variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
  
   comandos=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
-
-  CONFDIR=$GRUPO/conf
+  CONFDIR=../conf
 
   confFile=InstalarX.conf
   
@@ -294,6 +293,7 @@ function main {
      echo $msj
      grabarLog "INFORMATIVO" "$msj" 
 
+   
    # else
         # va con StarX.sh 
    # 	chequearDetectaX
@@ -304,9 +304,10 @@ function main {
    #         ./DetectaX.sh "$CANLOOP" "$TESPERA"     # Lanza el demonio (tengo que ejecutarlo con & ???)
    #      fi
    
-
+   else
+   	source StartX.sh; StartX "InicioX" ". DetectaX.sh $CANLOOP $TESPERA"  
+   	procssid=$?	
    fi
-
    mostrarMensajeInstalacionFinalizada
 }
 

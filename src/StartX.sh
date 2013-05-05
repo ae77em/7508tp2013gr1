@@ -3,6 +3,7 @@
 # Parametro 1: comando invocante
 # Parametro 2: comando a ejecutar
 function StartX {
+ 
    if [ $# -eq 3 ]
    then
       return 1
@@ -11,10 +12,13 @@ function StartX {
    comando=$1
    comandoAEjecutar=$2
    
-   if [ `ps | grep $comandoAEjecutar | wc -l` -ne 0 ]
+   nombreComando=$( echo "$comandoAEjecutar" | cut -f2 -d" ")	
+   
+   if [ `ps | grep $nombreComando | wc -l` -ne 0 ]
    then
       return 1
    fi
-   
-   return `$comandoAEjecutar &`
+
+   $comandoAEjecutar &
+   return $!	
 }
