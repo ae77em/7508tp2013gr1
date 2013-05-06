@@ -1387,12 +1387,11 @@ function main {
 	clear
 	cd ..
 
-	source "$grupo/instalacion/bin/GlogX.sh";
-	source "$grupo/instalacion/bin/MoverX.sh";
-
-
 	#grupo: path donde se encuentra el tp ../grupo01/
 	grupo="$PWD"
+
+	source "$grupo/instalacion/bin/GlogX.sh";
+	source "$grupo/instalacion/bin/MoverX.sh";
 
 	#CONFDIR: ubicacion del directorio de configuracion
 	CONFDIR="$grupo/conf"
