@@ -36,7 +36,7 @@ codigoSystem() {
 
 #Se valida si ya hay otro interprete corriendo y si el ambiente esta inicializado correctamente
 
-#CONFDIR=../conf
+CONFDIR=../conf
 
 validarInicio
 validacion1=$?
@@ -46,8 +46,10 @@ if [ $validacion1 -eq 0 ]
   then #Si no hay interprete y el ambiente es el correcto
   
       #Inicializar Log con "Inicio de interprete" y cantidad de archivos de entrada
-      #Tarea realizada por medio de la funcion GlogX
+      GlogX "Interprete.sh" "I" "Inicio de Interprete" "Interprete"
       archivosInput=`ls $ACEPDIR | wc -l` 
+      GlogX "Interprete.sh" "I" "$archivosInput" "Interprete"
+      
       
       #Procesamiento de archivos de $ACEPTDIR(Por cada archivo)
       registrosInput=0
@@ -130,7 +132,7 @@ if [ $validacion1 -eq 0 ]
 		 	   	    		mes=`expr substr $fecha 6 2`
 		       	  			dia=`expr substr $fecha 9 2`
 					else 
-						echo "Formato de fecha invalido"
+						GlogX "Interprete.sh" "E" "Formato de fecha invalido: $archivo" "Interprete"
 						anio="AAAA"
 		 	   	    		mes="MM"
 		       	  			dia="DD"
@@ -247,6 +249,7 @@ if [ $validacion1 -eq 0 ]
              if [ -z $lineaID_cliente ]              
                 then 
                   ID_cliente="99999999"
+		  GlogX "Interprete.sh" "E" "ID de cliente sin especificar: $PRES_ID" "Interprete"
                 else
                   ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`                   
              fi 
@@ -256,6 +259,7 @@ if [ $validacion1 -eq 0 ]
              if [ -z $lineaCliente ]              
                 then 
                   cliente="Cliente sin identificacion"
+		  GlogX "Interprete.sh" "E" "Cliente sin especificar: $PRES_ID" "Interprete"
                 else
                   cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                                         
              fi 
@@ -289,7 +293,7 @@ if [ $validacion1 -eq 0 ]
              #Darle formato a los registros y guardar los correspondientes
              if [ $MT_REST_ENT -le 0 ]&&[ $MT_REST_DEC -le 0 ]
              then
-              echo "Prestamo $PRES_ID cancelado"
+	      GlogX "Interprete.sh" "I" "Prestamo $PRES_ID cancelado" "Interprete"
              else
                registro=`echo "$codigoSistema;$anio;$mes;$dia;$estado;$PRES_ID;$MT_PRES;$MT_IMP;$MT_INDE;$MT_INNODE;$MT_DEB;$MT_REST;$ID_cliente;"$cliente";$fechaActual;$usuario"`
                
@@ -300,31 +304,31 @@ if [ $validacion1 -eq 0 ]
              fi
             registrosInput=`expr $registrosInput + 1`
 
-	    MoverX  "$ACEPDIR" "$PROCDIR" "Interprete.sh"
+	    MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
 
             done < $ACEPDIR/$archivo
             
             rm auxiliar
             
               #Grabar en el log la cantidad de registros que entraron y la que salieron
-                #Tarea realizada por medio de la funcion GlogX
-                
+                GlogX "Interprete.sh" "I" "Registros de Input: $registrosInput" "Interprete"
+                GlogX "Interprete.sh" "I" "Registros de Output: $registrosOutput" "Interprete"
               #Mover archivo a $PROCDIR
-                #Tarea realizada por medio del moverX
+                 MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
               
-          else  #En caso de estar duplicado
-            #Escribe en el log por medio de GlogX "DUPLICADO:archivo" y mueve el archivo a
-            #$RECHDIR por medio de MoverX 
-            echo "Duplicado"                                
+          else  #En caso de estar 
+	    GlogX "Interprete.sh" "I" "El archivo $achivo se encuentra duplicado" "Interprete"
+            MoverX "$ACEPDIR/$archivo" "$RECHDIR" "Interprete.sh"
+                           
           fi  
         fi
       done   
     #Grabar en el Log fin de interprete
-        #Tarea realizada por medio de la funcion GlogX
+         GlogX "Interprete.sh" "I" "Interprete finalizado" "Interprete"
 
     #echo $?
   else    
-    echo "Fallo la validacion previa a ejecutar el interprete"
+    GlogX "Interprete.sh" "SE" "Fallo la validacion previa al interprete" "Interprete"
 fi 
 
     
