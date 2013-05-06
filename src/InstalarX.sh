@@ -12,8 +12,6 @@
 #
 #===========================================================
 
-source "$grupo/instalacion/bin/GlogX.sh";
-source "$grupo/instalacion/bin/MoverX.sh";
 
 #Lee las variables del archivo de configuración.
 function leerVariablesDeConfiguracion {
@@ -1389,6 +1387,10 @@ function main {
 	clear
 	cd ..
 
+	source "$grupo/instalacion/bin/GlogX.sh";
+	source "$grupo/instalacion/bin/MoverX.sh";
+
+
 	#grupo: path donde se encuentra el tp ../grupo01/
 	grupo="$PWD"
 
@@ -1468,6 +1470,5 @@ Instalación Finalizada"
 	#Terminar el proceso	
 
 }
-
 
 main

@@ -1,17 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 #Definicion de funciones
 
 source "$BINDIR/GlogX.sh";
 source "$BINDIR/MoverX.sh";
 
 #Valida si la inicializacion fue hecha correctamente
-validarInicio() {
+function validarInicio() {
   echo "TODO: Inicio validado"
   return 0;
 }
 
 #Verifica que el archivo aceptado no haya sido procesado anteriormente
-verificarDuplicado() {
+function verificarDuplicado() {
   if [ ! -f $2/$1 ]
   then
     return 0
@@ -21,7 +21,7 @@ fi
 }
 
 #Determina el codigo del sistema a traves del nombre del archivo
-codigoSystem() {
+function codigoSystem() {
   posicionSeparador1=`expr match $1 [Aa-Zz]*.-`
   posicionSeparador1=`expr $posicionSeparador1 + 1`
   posicionSeparador2=`expr match $1 [Aa-Zz]*.-[0-9]*.-`
@@ -74,12 +74,18 @@ if [ $validacion1 -eq 0 ]
           then
           
             #Determinar codigo de pais
-            longCodigoPais=`expr match $archivo [Aa-Zz]*`	  
-            codigoPais=`expr substr $archivo 1 $longCodigoPais`
+	    #echo "ARCHIVO: $archivo"
+            #longCodigoPais=`expr match $archivo [Aa-Zz]*`	
+      	    #echo "LONGCODPAIS: $longCodigoPais"
+            codigoPais=`expr substr $archivo 1 1`
+    	    echo "CODIGOPAIS: $codigoPais"
 
             #Determinar codigo de sistema(Pasarlo a funcion codigoSistema)
             codigoSystem $archivo
             codigoSistema=$?
+
+	    echo "CODIGOSISTEMA: $codigoSistema"
+
 
             #Determinar separadores	
             Linea=`grep $codigoPais'-'$codigoSistema $CONFDIR/T1.tab`
@@ -304,7 +310,7 @@ if [ $validacion1 -eq 0 ]
              fi
             registrosInput=`expr $registrosInput + 1`
 
-	    MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
+	    #MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
 
             done < $ACEPDIR/$archivo
             
