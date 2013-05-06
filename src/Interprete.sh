@@ -103,11 +103,12 @@ if [ $validacion1 -eq 0 ]
             #Leer registro(Por cada registro)
             chmod 777 $PROCDIR
             touch auxiliar
-            
-            while read linea 
+  
+	    while read linea
             do
-             echo $linea > auxiliar
-             
+
+             echo $linea > auxiliar         
+
              #interpretar fecha
              lineaFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 4 -d"-"`
              formatoFecha=`grep $codigoPais'-'$codigoSistema'-CTB_FE' $CONFDIR/T2.tab | cut -f 5 -d"-"` 
@@ -147,7 +148,6 @@ if [ $validacion1 -eq 0 ]
               		  fi
 	           fi
 
-
              #interpretar estado
              lineaEstado=`grep $codigoPais'-'$codigoSistema'-CTB_ESTADO' $CONFDIR/T2.tab | cut -f 4 -d"-"` 
              if [ -z $lineaEstado ]              
@@ -160,7 +160,7 @@ if [ $validacion1 -eq 0 ]
                       estado="Estado sin especificar" 
                   fi                        
              fi 
-                     
+               
              #interpretar codigo prestamo
              lineaCodPres=`grep $codigoPais'-'$codigoSistema'-PRES_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`          
              if [ -z $lineaCodPres ]              
@@ -173,7 +173,7 @@ if [ $validacion1 -eq 0 ]
                       PRES_ID=0 
                   fi                        
              fi 
-                                
+                 
              #interpretar monto del prestamo
              lineaMT_pres=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 4 -d"-"` 
              formatoNumerico=`grep $codigoPais'-'$codigoSistema'-MT_PRES' $CONFDIR/T2.tab | cut -f 5 -d"-"`  
@@ -218,7 +218,7 @@ if [ $validacion1 -eq 0 ]
                   fi                        
              fi          
              MT_INDE=`echo $MT_INDE | sed 's/\r$//g'`
-             
+
              #interpretar monto intereses no devengados
              linea_innode=`grep $codigoPais'-'$codigoSistema'-MT_INNODE' $CONFDIR/T2.tab | cut -f 4 -d"-"`         
              if [ -z $linea_innode ]              
@@ -245,11 +245,12 @@ if [ $validacion1 -eq 0 ]
                       MT_DEB=0 
                   fi                        
              fi
-             MT_DEB=`echo $MT_DEB | sed 's/\r$//g'`        
-                       
+             MT_DEB=`echo $MT_DEB | sed 's/\r$//g'`  
+                      
              #Calcular monto restante              		     
              MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB"| bc`	      
-		
+       echo $MT_RES	 
+	
              #interpretar Id cliente
              lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`        
              if [ -z $lineaID_cliente ]              
@@ -259,7 +260,7 @@ if [ $validacion1 -eq 0 ]
                 else
                   ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`                   
              fi 
-             
+             echo $ID_cliente
              #interpretar CLiente
              lineaCliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI-' $CONFDIR/T2.tab | cut -f 4 -d"-"`                                   
              if [ -z $lineaCliente ]              
@@ -269,13 +270,13 @@ if [ $validacion1 -eq 0 ]
                 else
                   cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                                         
              fi 
-             
+             echo $cliente
              #Fecha actual
              fechaActual=`date +%d/%m/%Y`
              
              #Usuario  
              usuario=`whoami`
-             
+
              #Separacion del monto restante en parte entera y parte decimal
              posicionSeparador=`expr index $MT_REST '.'`
              if [ -z $posicionSeparador ]||[ $posicionSeparador -eq 0 ]
@@ -295,7 +296,7 @@ if [ $validacion1 -eq 0 ]
                    MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
                 fi
              fi
-             
+
              #Darle formato a los registros y guardar los correspondientes
              if [ $MT_REST_ENT -le 0 ]&&[ $MT_REST_DEC -le 0 ]
              then
@@ -309,12 +310,10 @@ if [ $validacion1 -eq 0 ]
                registrosOutput=`expr $registrosOutput + 1`   
              fi
             registrosInput=`expr $registrosInput + 1`
-
-	    #MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
-
+		
             done < $ACEPDIR/$archivo
-            
-            rm auxiliar
+
+           rm auxiliar
             
               #Grabar en el log la cantidad de registros que entraron y la que salieron
                 GlogX "Interprete.sh" "I" "Registros de Input: $registrosInput" "Interprete"
