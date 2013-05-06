@@ -36,7 +36,7 @@ function validarExtensionLog {
 	res=`echo "$1" | grep "^[.]"`
 	if [  "$1" != "$res" ]; then
 		echo "ERROR - La extensión del log debe comenzar con un punto (.)"
-		grabarLog "ERROR" "La extensión del log debe comenzar con un punto (.)"
+		grabarLog "E" "La extensión del log debe comenzar con un punto (.)"
 		cond="error"
 	fi
 	unset res
@@ -261,7 +261,7 @@ Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro v
 	"
 			
 		echo "$mensaje"
-		grabarLog "INFORMATIVO" "$mensaje"		
+		grabarLog "I" "$mensaje"		
 		cond="error"
 	fi
 
@@ -273,12 +273,12 @@ function validarNumerico {
 	res=`echo "$1" | grep "[^0-9]"`
 	if [ "$1" == "$res" ]; then
 		echo "ERROR -  \"$1\" tiene que ser un número entero."
-		grabarLog "ERROR" "\"$1\" tiene que ser un número entero."
+		grabarLog "E" "\"$1\" tiene que ser un número entero."
 		cond="error"
 	fi
 	if [ "$1" -eq "0" ];then
 		echo "ERROR - el valor ingresado no puede ser cero."
-		grabarLog "ERROR" "El valor ingresado no puede ser cero."
+		grabarLog "E" "El valor ingresado no puede ser cero."
 		cond="error"
 	fi
 
@@ -379,7 +379,7 @@ function validarListaDirecciones {
 	for i in ${listaDirecciones[*]}; do
 		if [ "$i" == "$1" ]; then
 		echo "ERROR - No puede elegir más de una vez el mismo directorio"
-		grabarLog "ERROR" "No puede elegir más de una vez el mismo directorio"
+		grabarLog "E" "No puede elegir más de una vez el mismo directorio"
 		cond="error"	
 		fi
 	done
@@ -394,7 +394,7 @@ function validarDirectorios {
 
 	if [ -d "$1" ]; then
 		echo "ERROR - el directorio ya existe"
-		grabarLog "ERROR" "El directorio ya existe"
+		grabarLog "E" "El directorio ya existe"
 		cond="error"
 	fi
 
@@ -468,7 +468,7 @@ Para completar la instalación Ud. deberá:
 	"	
 
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 
 }
 
@@ -562,7 +562,7 @@ Instalando Archivos Maestros..."
 	do
 		if [ -f "$grupo/instalacion/mae/$i" ]; then
 			 
-			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/mae/$i" "$MAEDIR" "InstalarX.sh"
+			MoverX  "$grupo/instalacion/mae/$i" "$MAEDIR" "InstalarX.sh"
 
 			resultado=$?
 
@@ -570,11 +570,11 @@ Instalando Archivos Maestros..."
 		 	
 			if [ "$resultado" -ne 0 ]; then
 
-				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+				mensaje="Ha ocurrido un error al mover $i"
 	
 				echo "$mensaje"
 
-				grabarLog "ERROR" "$mensaje"
+				grabarLog "E" "$mensaje"
 			fi
 
 		else
@@ -591,7 +591,7 @@ Instalando Tablas de Configuración..."
 	do
 		if [ -f "$grupo/instalacion/tablas/$i" ]; then
 			 
-			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/tablas/$i" "$CONFDIR" "InstalarX.sh"
+			MoverX  "$grupo/instalacion/tablas/$i" "$CONFDIR" "InstalarX.sh"
 
 			resultado=$?
 
@@ -599,11 +599,11 @@ Instalando Tablas de Configuración..."
 		 	
 			if [ "$resultado" -ne 0 ]; then
 
-				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+				mensaje="Ha ocurrido un error al mover $i"
 	
 				echo "$mensaje"
 
-				grabarLog "ERROR" "$mensaje"
+				grabarLog "E" "$mensaje"
 			fi
 
 		else
@@ -614,7 +614,7 @@ Instalando Tablas de Configuración..."
 		echo "
 Instalando Programas y Funciones..."
 
-	grabarLog "INFORMATIVO" "Instalando Programas y Funciones..."
+	grabarLog "I" "Instalando Programas y Funciones..."
 
 	#Mover.sh debe ser el ultimo en la lista de ejecutables (se mueve a si mismo)
 	EJECUTABLES=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl GlogX.sh VlogX.sh StartX.sh StopX.sh valPais.sh MoverX.sh)
@@ -623,7 +623,7 @@ Instalando Programas y Funciones..."
 	do
 		if [ -f "$grupo/instalacion/bin/$i" ]; then
 			 
-			source "$grupo/instalacion/bin/MoverX.sh"; MoverX  "$grupo/instalacion/bin/$i" "$BINDIR" "InstalarX.sh"
+			MoverX  "$grupo/instalacion/bin/$i" "$BINDIR" "InstalarX.sh"
 		 	
 			resultado=$?
 
@@ -631,11 +631,11 @@ Instalando Programas y Funciones..."
 
 			if [ "$resultado" -ne 0 ]; then
 
-				mensaje="[Instalar.sh] Ha ocurrido un error al mover $i"
+				mensaje="Ha ocurrido un error al mover $i"
 	
 				echo "$mensaje"
 
-				grabarLog "ERROR" "$mensaje"
+				grabarLog "E" "$mensaje"
 			fi
 				
 		else
@@ -649,13 +649,13 @@ function crearEstructurasDeDirectorios {
 
 	echo "Creando Estructuras de Directorio....
 "
-	grabarLog "INFORMATIVO" "Creando Estructuras de Directorio...."
+	grabarLog "I" "Creando Estructuras de Directorio...."
 
 	listaDirectorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR)
 
 	for i in ${listaDirectorios[*]}; do
 		echo "Creando $i..."	
-		grabarLog "INFORMATIVO" "Creando $i..." 	
+		grabarLog "I" "Creando $i..." 	
 		mkdir -p $i
 	done
 
@@ -684,7 +684,7 @@ TP SO7508 1er cuatrimestre 2013. Tema T Copyright (c) Grupo 01
 	"	
 
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 
 }
 
@@ -707,7 +707,7 @@ Perl Version: $version
 	"
 		echo "$mensaje"
 		
-		grabarLog "INFORMATIVO" "$mensaje"
+		grabarLog "I" "$mensaje"
 
 		fi
 	fi
@@ -722,7 +722,7 @@ Proceso de Instalación Cancelado.
 "
 		echo "$mensaje"
 	
-		grabarLog "INFORMATIVO" "$mensaje"
+		grabarLog "I" "$mensaje"
 
 		exit 0
 	fi
@@ -738,7 +738,7 @@ function validarRespuesta {
 	do
 		if [ "$respuesta" == "n" ]; then
 			echo "* El proceso de instalación ha sido CANCELADO. *"	
-			grabarLog "INFORMATIVO" "* El proceso de instalación ha sido CANCELADO. *"	
+			grabarLog "I" "* El proceso de instalación ha sido CANCELADO. *"	
 			exit 0 
 		fi
 		echo "$1"
@@ -893,7 +893,7 @@ $faltatamanio
 
 	"
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"	
+	grabarLog "I" "$mensaje"	
 
 }
 
@@ -943,7 +943,7 @@ Proceso de Instalación CANCELADO.
 	"
 
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 
 }
 
@@ -955,7 +955,7 @@ function completarInstalacion {
 	echo "
 Estado de la instalación: INCOMPLETA "
 	
-	grabarLog "INFORMATIVO" "Estado de la instalación: INCOMPLETA "
+	grabarLog "I" "Estado de la instalación: INCOMPLETA "
 
 	validarRespuesta "Desea completar la instalación? [s/n]"
 	
@@ -967,7 +967,7 @@ Estado de la instalación: INCOMPLETA "
 
 	echo "Estado de la instalación: LISTA" 
 
-	grabarLog "INFORMATIVO" "Estado de la instalación: LISTA" 
+	grabarLog "I" "Estado de la instalación: LISTA" 
 
 	#20 - Confirmar Inicio de Instalacion
 	validarRespuesta "Iniciando Instalación. ¿Está UD. seguro? [s/n]" 
@@ -1241,7 +1241,7 @@ function instalar {
 
 		echo "Estado de la instalación: LISTA" 
 
-		grabarLog "INFORMATIVO" "Estado de la instalación: LISTA" 
+		grabarLog "I" "Estado de la instalación: LISTA" 
 		
 		echo "¿Los datos ingresados son correctos? [s/n]"
 				
@@ -1294,7 +1294,7 @@ function inicializarVariablesDefault {
 function grabarLog {
 
 	export CONFDIR
-	source "$grupo/instalacion/bin/GlogX.sh"; GlogX "InstalarX.sh" "$1" "$2" "InstalarX"
+	GlogX "InstalarX.sh" "$1" "$2" "InstalarX"
 
 }
 
@@ -1319,13 +1319,13 @@ function mensajesInicioLog {
 
 	mensaje="Inicio de Ejecución"
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 	mensaje="Log del Comando InstalarX: $CONFDIR/$logFile"
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 	mensaje="Directorio de Configuración: $CONFDIR"
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 
 }
 
@@ -1338,7 +1338,7 @@ function testArchivosMaestros  {
 		if ! [ -f $1/"$i" ]; then
 			echo "* Falta el archivo maestro: \"$i\""
 			cantErrores=$[ $cantErrores + 1 ]	
-			grabarLog "ERROR" "* Falta el archivo maestro: \"$i\""
+			grabarLog "SE" "* Falta el archivo maestro: \"$i\""
 		fi
 	done
 
@@ -1354,7 +1354,7 @@ function testComandos  {
 		if ! [ -f $1/"$i" ]; then
 			echo "* Falta el ejecutable: \"$i\""
 			cantErrores=$[ $cantErrores + 1 ]
-			grabarLog "ERROR" "* Falta el archivo maestro: \"$i\""	
+			grabarLog "SE" "* Falta el archivo maestro: \"$i\""	
 		fi
 	done
 
@@ -1374,7 +1374,7 @@ function verificarArchivosInstalacion {
 Proceso de Instalación cancelado.
 Asegúrese de que contar con los archivos arriba mencionados y vuelva a intentarlo."
 		echo $mensaje
-		grabarLog "ERROR" $mensaje
+		grabarLog "SE" $mensaje
 		exit 0
 	fi
 
@@ -1465,4 +1465,7 @@ Instalación Finalizada"
 	#Terminar el proceso	
 
 }
+
+source "$grupo/instalacion/bin/GlogX.sh";
+source "$grupo/instalacion/bin/MoverX.sh";
 main
