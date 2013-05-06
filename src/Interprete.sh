@@ -1,6 +1,9 @@
 #!/bin/sh
 #Definicion de funciones
 
+source "$BINDIR/GlogX.sh";
+source "$BINDIR/MoverX.sh";
+
 #Valida si la inicializacion fue hecha correctamente
 validarInicio() {
   echo "TODO: Inicio validado"
@@ -36,10 +39,10 @@ codigoSystem() {
 #CONFDIR=../conf
 
 validarInicio
-validacion2=$?
+validacion1=$?
 
 
-if [ $validacion2 -eq 0 ]
+if [ $validacion1 -eq 0 ]
   then #Si no hay interprete y el ambiente es el correcto
   
       #Inicializar Log con "Inicio de interprete" y cantidad de archivos de entrada
@@ -121,9 +124,17 @@ if [ $validacion2 -eq 0 ]
          	   	    		mes=`expr substr $fecha 5 2`
                	 		        dia=`expr substr $fecha 7 2`
 	              		     else
-		        	   	anio=`expr substr $fecha 1 4`
-         	   	    		mes=`expr substr $fecha 6 2`
-               	  			dia=`expr substr $fecha 9 2`
+					if [ "$formatoFecha" = "yymmdd10" ]
+					then
+					   	anio=`expr substr $fecha 1 4`
+		 	   	    		mes=`expr substr $fecha 6 2`
+		       	  			dia=`expr substr $fecha 9 2`
+					else 
+						echo "Formato de fecha invalido"
+						anio="AAAA"
+		 	   	    		mes="MM"
+		       	  			dia="DD"
+					fi
 		         	  fi 
               		  fi
 	           fi
@@ -229,8 +240,8 @@ if [ $validacion2 -eq 0 ]
              MT_DEB=`echo $MT_DEB | sed 's/\r$//g'`        
                        
              #Calcular monto restante              		     
-             MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB"| bc`
- 
+             MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB"| bc`	      
+		
              #interpretar Id cliente
              lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`        
              if [ -z $lineaID_cliente ]              
@@ -257,7 +268,7 @@ if [ $validacion2 -eq 0 ]
              
              #Separacion del monto restante en parte entera y parte decimal
              posicionSeparador=`expr index $MT_REST '.'`
-             if [ -z $posicionSeparador ] 
+             if [ -z $posicionSeparador ]||[ $posicionSeparador -eq 0 ]
              then 
                 MT_REST_ENT=$MT_REST
                 MT_REST_DEC=0
@@ -274,7 +285,6 @@ if [ $validacion2 -eq 0 ]
                    MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
                 fi
              fi
-             echo "$MT_REST_ENT.$MT_REST_DEC"
              
              #Darle formato a los registros y guardar los correspondientes
              if [ $MT_REST_ENT -le 0 ]&&[ $MT_REST_DEC -le 0 ]
@@ -289,6 +299,9 @@ if [ $validacion2 -eq 0 ]
                registrosOutput=`expr $registrosOutput + 1`   
              fi
             registrosInput=`expr $registrosInput + 1`
+
+	    MoverX  "$ACEPDIR" "$PROCDIR" "Interprete.sh"
+
             done < $ACEPDIR/$archivo
             
             rm auxiliar
