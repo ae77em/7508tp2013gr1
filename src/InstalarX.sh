@@ -12,6 +12,9 @@
 #
 #===========================================================
 
+source "$grupo/instalacion/bin/GlogX.sh";
+source "$grupo/instalacion/bin/MoverX.sh";
+
 #Lee las variables del archivo de configuración.
 function leerVariablesDeConfiguracion {
 
@@ -1466,6 +1469,5 @@ Instalación Finalizada"
 
 }
 
-source "$grupo/instalacion/bin/GlogX.sh";
-source "$grupo/instalacion/bin/MoverX.sh";
+
 main
