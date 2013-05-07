@@ -2,7 +2,7 @@
 
 # Parametro: id del proceso a finalizar
 function StopX {
-   if [ $_ -eq 2 ]
+   if [ $# -eq 2 ]
    then
       return 1
    fi

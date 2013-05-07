@@ -143,32 +143,57 @@ function chequearPaths {
   fi 
 }
 
+#Valida que lo ingresado sea un valor numerico entero y mayor a cero
+function validarNumerico {
+
+  res=`echo "$1" | grep "[^0-9]"`
+  if [ "$1" == "$res" ]; then
+     echo "ERROR -  \"$1\" tiene que ser un número entero."
+     #grabarLog "E" "\"$1\" tiene que ser un número entero."
+     cond="error"
+  fi
+  if [ "$1" == "0" ];then
+     echo "ERROR - el valor ingresado no puede ser cero."
+     #grabarLog "E" "El valor ingresado no puede ser cero."
+     cond="error"
+  fi
+
+  unset res
+}
+
+
 # Funcion que pide por teclado la cantidad de loops que quiere que haga el DetectaX
 
 function ingresarCantLoop {
  
- echo "Cantidad de ciclos de DetectaX ? (100 ciclos)"
- read CANLOOP
+ cond="error"
+ while [ $cond == "error" ]
+ do
+     echo "Cantidad de ciclos de DetectaX ? (100 ciclos)"
+     read CANLOOP
+     cond="ok"
+     validarNumerico $CANLOOP
 
- while [ $CANLOOP -le 0 ]
-   do
-     echo "Por favor ingrese un numero positivo"
-     read CANLOOP  
-   done
+ done
+ unset cond
+
 }
 
 # Funcion que pide por teclado el tiempo de espera que quiere que tenga el DetectaX
 
 function ingresartEspera {
  
- echo "Tiempo de espera entre ciclos? (1 minuto)"
- read TESPERA
-
- while [ $TESPERA -lt 1 ]
+ cond="error"
+ while [ $cond == "error" ]
    do
-     echo "Por favor ingrese un numero mayor a un minuto"
-     read TESPERA  
-   done
+     echo "Tiempo de espera entre ciclos? (1 minuto)"
+     read TESPERA
+     cond="ok"
+     validarNumerico $TESPERA
+
+ done
+ unset cond
+
 }
 
 # Chequea si el proceso DetectaX ya esta corriendo
@@ -295,8 +320,8 @@ function main {
    
    else
         #source "$BINDIR/StartX.sh";
-	StartX.sh "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
-   	procssid=$?	
+	StartX.sh "InicioX" "DetectaX.sh $CANLOOP $TESPERA"
+	procssid=$(ps | grep "DetectaX" | cut -f1 -d' ')
    fi
    
    mostrarMensajeInstalacionFinalizada

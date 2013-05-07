@@ -277,7 +277,7 @@ function validarNumerico {
 		grabarLog "E" "\"$1\" tiene que ser un número entero."
 		cond="error"
 	fi
-	if [ "$1" -eq "0" ];then
+	if [ "$1" == "0" ];then
 		echo "ERROR - el valor ingresado no puede ser cero."
 		grabarLog "E" "El valor ingresado no puede ser cero."
 		cond="error"

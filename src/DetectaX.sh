@@ -61,7 +61,6 @@ do
 				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
 					then
 					GlogX "DetectaX.sh" "E" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" "DetectaX"
-					echo "ARCH: $arch					"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
@@ -71,7 +70,6 @@ do
 				if [[ "$periodo" > "$periodoActual" ]] || [[ "$periodo" < "200000" ]] #2000+00
 					then
 					GlogX "DetectaX.sh" "E" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" "DetectaX"
-					echo "ARCH: $arch					"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false	
 					continue	
@@ -79,9 +77,7 @@ do
 			########### pais/sistema/mes
 				if [ "$mes" -lt 0 ] || [ "$mes" -gt 12 ]
 					then
-					echo "escribo log con mensaje: mes invalido"
-					GlogX "DetectaX.sh" "E" "mes invalido" "DetectaX"
-					echo "ARCH: $arch					"
+					GlogX "DetectaX.sh" "E" "Mes invalido" "DetectaX"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
@@ -122,7 +118,12 @@ do
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
 	then
 		#GlogX "DetectaX.sh" "I" "$ACEPDIR: Carpeta con archivos, se ejecutara el interprete si no hay otro corriendo" "DetectaX"
-		StartX.sh "DetectaX.sh" "Interprete.sh"
+		procssid=$(ps | grep "Interprete" | cut -f1 -d' ')
+		if [ -z $procssid ]; then 
+ 			GlogX "DetectaX.sh" "E" "El Interprete ya esta corriendo. Número de proceso: $procssid" "DetectaX"
+		else
+			StartX.sh "DetectaX.sh" "Interprete.sh"
+		fi
 	fi
 
 #### termino el ciclo, actualizo variable

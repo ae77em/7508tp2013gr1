@@ -11,7 +11,7 @@ function StartX {
    
    comando=$1
    comandoAEjecutar=$2
-    echo "$2"
+
    nombreComando=$( echo "$comandoAEjecutar" | cut -f1 -d" ")
    
    var=`ps -fea | grep -v "grep" | grep -v "StartX" | grep "$nombreComando" | wc -l`
@@ -22,8 +22,9 @@ function StartX {
    fi
 
    $comandoAEjecutar &
-   return $!	
-
+   return $!
+   
 }
 
-StartX $1 $2 
+StartX "$1" "$2"
+
