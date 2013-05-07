@@ -78,14 +78,10 @@ if [ $validacion1 -eq 0 ]
             #longCodigoPais=`expr match $archivo [Aa-Zz]*`	
       	    #echo "LONGCODPAIS: $longCodigoPais"
             codigoPais=`expr substr $archivo 1 1`
-    	    echo "CODIGOPAIS: $codigoPais"
 
             #Determinar codigo de sistema(Pasarlo a funcion codigoSistema)
             codigoSystem $archivo
             codigoSistema=$?
-
-	    echo "CODIGOSISTEMA: $codigoSistema"
-
 
             #Determinar separadores	
             Linea=`grep $codigoPais'-'$codigoSistema $CONFDIR/T1.tab`
@@ -104,7 +100,7 @@ if [ $validacion1 -eq 0 ]
             chmod 777 $PROCDIR
             touch auxiliar
   
-	    while read linea
+	    while IFS=$'\n' read -r linea || [[ -n "$linea" ]]
             do
 
              echo $linea > auxiliar         
@@ -249,18 +245,18 @@ if [ $validacion1 -eq 0 ]
                       
              #Calcular monto restante              		     
              MT_REST=`echo "$MT_PRES + $MT_IMP + $MT_INDE + $MT_INNODE - $MT_DEB"| bc`	      
-       echo $MT_RES	 
-	
+
              #interpretar Id cliente
              lineaID_cliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI_ID' $CONFDIR/T2.tab | cut -f 4 -d"-"`        
              if [ -z $lineaID_cliente ]              
                 then 
-                  ID_cliente="99999999"
+	#paso ID negativo al cliente no identificado
+                  ID_cliente="-99999999"
 		  GlogX "Interprete.sh" "E" "ID de cliente sin especificar: $PRES_ID" "Interprete"
                 else
                   ID_cliente=`cut -f $lineaID_cliente -d$sepCampos auxiliar`                   
              fi 
-             echo $ID_cliente
+
              #interpretar CLiente
              lineaCliente=`grep $codigoPais'-'$codigoSistema'-PRES_CLI-' $CONFDIR/T2.tab | cut -f 4 -d"-"`                                   
              if [ -z $lineaCliente ]              
@@ -270,7 +266,7 @@ if [ $validacion1 -eq 0 ]
                 else
                   cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                                         
              fi 
-             echo $cliente
+
              #Fecha actual
              fechaActual=`date +%d/%m/%Y`
              
