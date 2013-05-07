@@ -29,17 +29,17 @@ function chequearComandos {
  for i in ${comandos[*]}
    do
      if [ -f $BINDIR/$i ]; then
-          echo "El comando $i existe"
+          echo -e "El comando $i existe\n"
  
           if [ -x $BINDIR/$i ]; then 
-            echo "y tiene permisos de ejecucion"
+            echo -e "y tiene permisos de ejecucion\n"
           else 
             chmod 777 $BINDIR/$i
-            echo `ls -l $BINDIR/$i`
+            echo -e "`ls -l $BINDIR/$i` \n"
           fi
          
      else
-        echo "El comando $i no existe" 
+        echo -e "El comando $i no existe\n" 
      fi
    done  
 }
@@ -52,17 +52,17 @@ function chequearMaestros {
  for i in PPI.mae p-s.mae
    do
      if [ -f $MAEDIR/$i ]; then
-          echo "El archivo maestro $i existe"
+          echo -e "El archivo maestro $i existe\n"
  
           if [ -r $MAEDIR/$i ] &&  ! [ -w $MAEDIR/$i ]; then 
-            echo "y tiene permisos de lectura, pero no escritura"
+            echo -e "y tiene permisos de lectura, pero no escritura\n"
           else 
             chmod 444 $MAEDIR/$i
-            echo `ls -l $MAEDIR/$i`
+            echo -e `ls -l $MAEDIR/$i`
           fi
          
      else
-        echo "El archivo maestro $i no existe" 
+        echo -e "El archivo maestro $i no existe\n" 
      fi
    done  
 
@@ -76,17 +76,17 @@ function chequearTablas {
  for i in T2.tab T1.tab
    do
      if [ -f $CONFDIR/$i ]; then
-          echo "El archivo maestro $i existe"
+          echo -e "El archivo maestro $i existe\n"
  
           if [ -r $CONFDIR/$i ] &&  ! [ -w $CONFDIR/$i ]; then 
-            echo "y tiene permisos de lectura, pero no escritura"
+            echo -e "y tiene permisos de lectura, pero no escritura\n"
           else 
             chmod 444 $CONFDIR/$i
-            echo `ls -l $CONFDIR/$i`
+            echo -e `ls -l $CONFDIR/$i`
           fi
          
      else
-        echo "El archivo maestro $i no existe"
+        echo -e "El archivo maestro $i no existe\n"
      fi
    done  
 
@@ -109,14 +109,14 @@ function chequearVarAmbiente {
 
        if [ -z "$res" ]; then
 
-         echo "Falta la variable de ambiente $var, agregando..."
+         echo -e "Falta la variable de ambiente $var, agregando...\n"
 
          setVariablesDeConfiguracion $CONFDIR/$confFile $var
 
-         echo "Variable $var ahora esta agregada"
+         echo -e "Variable $var ahora esta agregada\n"
 
        else
-         echo "La variable de ambiente $var=$res existe"
+         echo -e "La variable de ambiente $var=$res existe\n"
        fi      
    done
 }
@@ -130,15 +130,15 @@ function chequearPaths {
 
   if [ -z "$ejec" ]; then
 
-    echo "No esta el path de ejecutables, agregando..."
+    echo -e "No esta el path de ejecutables, agregando...\n"
     
     export PATH=$PATH:$BINDIR
     
-    echo "Agregado"
+    echo -e "Agregado\n"
 
   else
 
-    echo "El path de ejecutables esta seteado"
+    echo -e "El path de ejecutables esta seteado\n"
     
   fi 
 }
@@ -209,6 +209,7 @@ function mostrarMensajeInstalacionFinalizada {
 	dirconf=`ls $CONFDIR`
 	dirbin=`ls $BINDIR`
 	dirmae=`ls $MAEDIR`
+
         #procssid=`ps | grep 'DetectaX' | cut -d" " -f2`
 
 	mensaje="
@@ -245,9 +246,8 @@ Reportes de salida: $REPODIR
 Logs de auditoría del Sistema: $LOGDIR/InicioX$LOGEXT
 
 Estado del Sistema: INICIALIZADO
-"
-#Demonio corriendo bajo el no.: <$procssid>
-#	"
+
+Demonio corriendo bajo el no.: <$procssid> "
 
 	echo "$mensaje"
 	grabarLog "INFORMATIVO" "$mensaje"
@@ -283,14 +283,14 @@ function main {
     
   if [ $? == 1 ]; then
 
-     msj="Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: 
+     msj="Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: \n
              
-              Uso: DetectaX.sh CANTLOOP TESPERA
+          Uso: DetectaX.sh CANTLOOP TESPERA \n
              
-              CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio,
-              y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo."
+          CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio, \n
+          y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo.\n"
       
-     echo $msj
+     echo -e $msj
      grabarLog "INFORMATIVO" "$msj" 
 
    
@@ -305,7 +305,7 @@ function main {
    #      fi
    
    else
-   	source StartX.sh; StartX "InicioX" ". DetectaX.sh $CANLOOP $TESPERA"  
+   	source StartX.sh; StartX "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
    	procssid=$?	
    fi
    mostrarMensajeInstalacionFinalizada
