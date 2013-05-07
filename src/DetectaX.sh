@@ -122,7 +122,7 @@ do
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
 	then
 		#GlogX "DetectaX.sh" "I" "$ACEPDIR: Carpeta con archivos, se ejecutara el interprete si no hay otro corriendo" "DetectaX"
-		StartX "DetectaX.sh" "Interprete.sh"
+		StartX.sh "DetectaX.sh" "Interprete.sh"
 	fi
 
 #### termino el ciclo, actualizo variable

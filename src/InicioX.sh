@@ -294,8 +294,8 @@ function main {
      grabarLog "I" "$msj" 
    
    else
-        #source "$BINDIR/StartX.sh";  
-   	StartX "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
+        #source "$BINDIR/StartX.sh";
+	StartX.sh "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
    	procssid=$?	
    fi
    

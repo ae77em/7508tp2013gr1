@@ -11,11 +11,11 @@ function StartX {
    
    comando=$1
    comandoAEjecutar=$2
+    echo "$2"
+   nombreComando=$( echo "$comandoAEjecutar" | cut -f1 -d" ")
    
-   nombreComando=$( echo "$comandoAEjecutar" | cut -f1 -d" ")	
+   var=`ps -fea | grep -v "grep" | grep -v "StartX" | grep "$nombreComando" | wc -l`
    
-   var=`ps -fea | grep -v "grep" | grep "$nombreComando" | wc -l`
-
    if [ "$var" -ne 0 ]
    then
       return 1
