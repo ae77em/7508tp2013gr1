@@ -6,6 +6,8 @@
 function VlogX {
    # Cantidad de lineas a dejar
    nroLineas=50
+    
+   echo "entra"
 
    # Si no se pasan los 2 parametros solicitados, es un error
    if [ $# -eq 4 ]
@@ -30,11 +32,13 @@ function VlogX {
    
    if [[ $filtro =~ \-[0-9]+ ]]
    then
-      tail $filtro $directorioLog/$archivoLog.$LOGEXT
+      tail $filtro $directorioLog/$archivoLog$LOGEXT
    else
-      cat $directorioLog/$archivoLog.$LOGEXT | grep -i $filtro
+      echo "llegue"
+      cat $directorioLog/$archivoLog$LOGEXT | grep -i $filtro
    fi   
    
    return 0
 }
  
+VlogX $1 $2 $3

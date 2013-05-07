@@ -250,7 +250,7 @@ Estado del Sistema: INICIALIZADO
 Demonio corriendo bajo el no.: <$procssid> "
 
 	echo "$mensaje"
-	grabarLog "INFORMATIVO" "$mensaje"
+	grabarLog "I" "$mensaje"
 
 }
 
@@ -271,15 +271,15 @@ function main {
   chequearPaths
   chequearComandos
   
-  grabarLog "INFORMATIVO" "Inicio de ejecucion"
+  grabarLog "I" "Inicio de ejecucion"
 
   chequearMaestros
   chequearTablas
  
   ingresarCantLoop
   ingresartEspera
-    
-  lanzarDetectaX
+ 
+ lanzarDetectaX
     
   if [ $? == 1 ]; then
 
@@ -291,23 +291,14 @@ function main {
           y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo.\n"
       
      echo -e $msj
-     grabarLog "INFORMATIVO" "$msj" 
-
-   
-   # else
-        # va con StarX.sh 
-   # 	chequearDetectaX
-   #      if [ $? == 1 ]; then
-   #         echo "El proceso DetectaX ya se esta ejecutando"
-   #      else
-   #         echo "El proceso DetectaX no se esta ejecutando"        
-   #         ./DetectaX.sh "$CANLOOP" "$TESPERA"     # Lanza el demonio (tengo que ejecutarlo con & ???)
-   #      fi
+     grabarLog "I" "$msj" 
    
    else
-   	source StartX.sh; StartX "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
+        #source "$BINDIR/StartX.sh";  
+   	StartX "InicioX" "DetectaX.sh $CANLOOP $TESPERA"  
    	procssid=$?	
    fi
+   
    mostrarMensajeInstalacionFinalizada
 }
 

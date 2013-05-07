@@ -19,4 +19,5 @@ function StopX {
    
    return 0
 }
- 
+
+StopX $1

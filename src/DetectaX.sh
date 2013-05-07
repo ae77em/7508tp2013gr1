@@ -13,13 +13,10 @@
 source "valPais.sh";
 source "$BINDIR/GlogX.sh";
 source "$BINDIR/MoverX.sh";
-source "$BINDIR/StartX.sh";
+#source "$BINDIR/StartX.sh";
 archMae="$MAEDIR/p-s.mae"
 
 #chequeo que me esten pasando 2 parametros
-
-echo $MAEDIR
-echo $ARRIDIR
 
 if [[ $# != 2 ]]
 	then
@@ -35,13 +32,11 @@ periodoActual=$anioActual$mesActual
 canloop=$1
 tespera=$2
 
-echo $canloop
-echo $tespera
 ########## comienza a correr
 while [[ "$canloop" != 0 ]]
 do
 #Grabar en el Log Ciclo Nro "$3-$canloop+1"(Glog)
-#
+
 	if [[ -n $(ls $ARRIDIR) ]]  #Chequeo si hay archivos en $ARRIDIR
 	then
 		
@@ -50,8 +45,6 @@ do
 		do
 			tipoArch="$(file -b "$arch")" #me da el tipo de archivo
 			tipoArch=$(echo $tipoArch | cut -f 1 -d",")
-			echo $tipoArch	
-			echo "arch = $arch"
 			valido=true;
 			if [[ "$tipoArch" = "ASCII text" ]] || [[ "$tipoArch" = "empty" ]] #si el archivo es de texto o vacio, es valido
 			then						
@@ -67,10 +60,9 @@ do
 				cantDigMes=$(echo -n "$mes" | wc -m)
 				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
 					then
-					echo "error: nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02"
-					GlogX "DetectaX.sh" "ERROR" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" $0
+					GlogX "DetectaX.sh" "E" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" "DetectaX"
+					echo "ARCH: $arch					"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
-					#mover a RECHDIR
 					valido=false
 					continue
 				fi
@@ -78,10 +70,9 @@ do
 				periodo=$anio$mes
 				if [[ "$periodo" > "$periodoActual" ]] || [[ "$periodo" < "200000" ]] #2000+00
 					then
-					echo "error: periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual"
-					 GlogX "DetectaX.sh" "ERROR" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" $0
-					 MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
-					#mover a RECHDIR
+					GlogX "DetectaX.sh" "E" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" "DetectaX"
+					echo "ARCH: $arch					"
+					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false	
 					continue	
 				fi 
@@ -89,17 +80,18 @@ do
 				if [ "$mes" -lt 0 ] || [ "$mes" -gt 12 ]
 					then
 					echo "escribo log con mensaje: mes invalido"
-					 GlogX "DetectaX.sh" "ERROR" "mes invalido" $0
-					 MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
-					#mover a RECHDIR
+					GlogX "DetectaX.sh" "E" "mes invalido" "DetectaX"
+					echo "ARCH: $arch					"
+					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
 				fi
 
-				ret=$( validar "$pais" "$sistema" "$archMae")
-				if [[ "$ret" != "Valido" ]]
+				validar "$pais" "$sistema" "$archMae"
+				ret=$?
+				if [[ $ret -ne 0 ]]
 				then			
-					echo "escribo el log con mensaje "$ret""
+					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
 				fi
@@ -108,23 +100,16 @@ do
 			#######aca terminan los invalidos, si llega es que es valido
 				if [[ "$valido" = true ]]
 					then
-					echo "valido" #si no pongo esto se enoja xq esta vacio el if
-					 GlogX "DetectaX.sh" "Informativo" "Archivo valido" $0
-					echo $arch
-					echo $ACEPDIR
+					GlogX "DetectaX.sh" "I" "Archivo valido: $arch" "DetectaX"
 					MoverX  "$arch" "$ACEPDIR" "DetectaX.sh"
-					#mover a ACEPDIR
-					#grabar log con mensaje de exito
 				else
 					echo "error de programacion, no deberia llegar aca invalido"	
 				fi
 
 	
 			else
-				GlogX "DetectaX.sh" "ERROR" "tipo de arch invalido (escribir log)" $0
+				GlogX "DetectaX.sh" "E" "tipo de arch invalido (escribir log)" "DetectaX"
 				MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
-				#mover archivo a $RECHDIR
-				echo "Error: tipo de arch invalido (escribir log)"
 				validez=false
 
 			fi	#fin del if que evalua el tipo de archivo
@@ -135,28 +120,9 @@ do
 ############### todos los archivos que corresponden fueron movidos a $acepdir o $rechdir
 
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
-		then
-		echo "carpeta con archivos, se ejecutara el interprete si no hay otro corriendo"
-		
-		#procesos=$(ps | grep Interprete.sh) #cambiar por Interprete
-
+	then
+		#GlogX "DetectaX.sh" "I" "$ACEPDIR: Carpeta con archivos, se ejecutara el interprete si no hay otro corriendo" "DetectaX"
 		StartX "DetectaX.sh" "Interprete.sh"
-		
-		#if [[ $? -ne 1 ]]   
-		#then
-		#	echo $?
-		#fi
-
-		#if [[ -n "$procesos" ]]
-		#	then
-		#	echo "DetectaX.sh esta corriendo, no se pudo ejecutar" #cambiar por Interprete y msj de error si no se ejecuta
-		#else
-		#	echo "se comienza a ejecutar Interprete"
-		#	echo "se devuelve el PID de Interprete"
-		#	#si interprete tira algun error hay que mostrar mensaje
-		#	echo $( ps cax | grep DetectaX.sh | cut -c1-5 ) # CHEQUEAR PORQUE TIRA UN PROCESO DE MAS Y CAMBIAR POR INTERPRETE
-		#fi	
-
 	fi
 
 #### termino el ciclo, actualizo variable

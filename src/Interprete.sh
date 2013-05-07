@@ -1,12 +1,19 @@
 #!/bin/bash
 #Definicion de funciones
 
-source "$BINDIR/GlogX.sh";
-source "$BINDIR/MoverX.sh";
-
 #Valida si la inicializacion fue hecha correctamente
 function validarInicio() {
-  echo "TODO: Inicio validado"
+
+   variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
+  
+   for var in ${variables[*]}
+     do
+	res=`env | grep $var | cut -d"=" -f 2`
+	if [ -z $res ]; then
+		return 1
+	fi
+  done	
+
   return 0;
 }
 
@@ -41,14 +48,22 @@ CONFDIR=../conf
 validarInicio
 validacion1=$?
 
+if [ $validacion1 -eq 0 ] 
+   then
+   
+   source "$BINDIR/GlogX.sh";
+   source "$BINDIR/MoverX.sh";
 
-if [ $validacion1 -eq 0 ]
-  then #Si no hay interprete y el ambiente es el correcto
+   archivosInput=`ls $ACEPDIR | wc -l` 
+
+   #Inicializar Log con "Inicio de interprete" y cantidad de archivos de entrada
+   GlogX "Interprete.sh" "I" "Inicio de Interprete" "Interprete"
+	
+   if [ $archivosInput -ne 0 ]
+      then #Si no hay interprete y el ambiente es el correcto
   
-      #Inicializar Log con "Inicio de interprete" y cantidad de archivos de entrada
-      GlogX "Interprete.sh" "I" "Inicio de Interprete" "Interprete"
-      archivosInput=`ls $ACEPDIR | wc -l` 
-      GlogX "Interprete.sh" "I" "$archivosInput" "Interprete"
+     # archivosInput=`ls $ACEPDIR | wc -l` 
+      GlogX "Interprete.sh" "I" "Cantidad de archivos de entrada: $archivosInput" "Interprete"
       
       
       #Procesamiento de archivos de $ACEPTDIR(Por cada archivo)
@@ -324,12 +339,16 @@ if [ $validacion1 -eq 0 ]
           fi  
         fi
       done   
+    #si archivosInput es igual a cero 
+    else
+	GlogX "Interprete.sh" "I" "No hay archivos de entrada" "Interprete"
+    fi
     #Grabar en el Log fin de interprete
-         GlogX "Interprete.sh" "I" "Interprete finalizado" "Interprete"
-
-    #echo $?
+        GlogX "Interprete.sh" "I" "Interprete finalizado" "Interprete"
+  #si el ambiente no esta inicializado
   else    
-    GlogX "Interprete.sh" "SE" "Fallo la validacion previa al interprete" "Interprete"
+      echo "Interprete.sh - El ambiente no esta inicializado"
+      echo "Interprete.sh - No se ejecuta el comando"
 fi 
 
     

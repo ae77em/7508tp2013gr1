@@ -40,31 +40,32 @@ done
 
 if [[ "$combinacionEncontrada" = true ]]
 then
-	echo "Valido"
-	exit 0
+	GlogX "DetectaX.sh" "E" "Valido" "DetectaX"
+	return 0
 fi
 
 if [[ "$paisEncontrado" = false ]] && [[ "$sistemaEncontrado" = false ]] 
 then
-	echo "No existe ni sistema ni pais"
-	exit 1
+	GlogX "DetectaX.sh" "E" "No existe ni sistema ni pais" "DetectaX"
+	return 1
 fi
 
 if [[ "$paisEncontrado" = false ]]
 then
-	echo "No existe pais"
-	exit 2
+	GlogX "DetectaX.sh" "E" "No existe pais" "DetectaX"
+	return 2
 fi
 
 if [[ "$sistemaEncontrado" = false ]]
 then
-	echo "No existe sistema"
-	exit 3
+	GlogX "DetectaX.sh" "E" "No existe sistema" "DetectaX"
+	return 3
 fi
 
 if [[ "$paisEncontrado" = true ]] && [[ "$sistemaEncontrado" = true ]] 
 then
-	echo "No existe combinacion"
+	 GlogX "DetectaX.sh" "E" "No existe combinacion" "DetectaX"
+	 return 4
 fi
 
 
