@@ -86,7 +86,7 @@ do
 					continue	
 				fi 
 			########### pais/sistema/mes
-				if [[ "$mes" -lt 0 ]] || [[ "$mes" -gt 12 ]]
+				if [ "$mes" -lt 0 ] || [ "$mes" -gt 12 ]
 					then
 					echo "escribo log con mensaje: mes invalido"
 					 GlogX "DetectaX.sh" "ERROR" "mes invalido" $0
