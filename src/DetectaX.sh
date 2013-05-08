@@ -118,7 +118,7 @@ do
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
 	then
 		#GlogX "DetectaX.sh" "I" "$ACEPDIR: Carpeta con archivos, se ejecutara el interprete si no hay otro corriendo" "DetectaX"
-		procssid=$(ps | grep "Interprete" | cut -f1 -d' ')
+		procssid=$(ps | grep "Interprete" | cut -f2 -d' ')
 		if [ -z $procssid ]; then 
  			GlogX "DetectaX.sh" "E" "El Interprete ya esta corriendo. Número de proceso: $procssid" "DetectaX"
 		else
