@@ -33,6 +33,9 @@ $COMANDOS_USADOS="";
 %registros_ppi;
 %registros_prestamos;
 
+@reg_ppi;
+@reg_p_p;
+
 @reporte;
 
 ################
@@ -70,6 +73,23 @@ sub inicializarGlobales{
     %registros_prestamos=();
 
     @reporte=();
+    @reg_ppi=();
+	@reg_p_p=();
+}
+
+#
+# Se fija si la respuesta es si o no, o si es invalida
+#
+sub normalizarDia{
+	
+	my $dia = @_[0];
+	
+	if( int($dia) < 10 )
+	{
+		$dia = '0'.int($dia);
+	}
+		
+	return $dia;
 }
 
 #
@@ -143,7 +163,6 @@ sub obtenerDirectorios{
 	my @valores_registro;
 	my $cantDir = 0;
 	
-	print "entre";
 	# Abro el archivo InstalarX.conf
 	open(CONF,"../conf/InstalarX.conf") || die "ERROR: No puedo abrir el fichero InstalarX.conf\n";
 	
@@ -157,19 +176,16 @@ sub obtenerDirectorios{
 		if (@valores_registro[0] eq "MAEDIR")
 		{
 			$MAEDIR = @valores_registro[1];
-			print "mae: $MAEDIR\n";
 			$cantDir++;
 		}
 		elsif (@valores_registro[0] eq "PROCDIR")
 		{
 			$PROCDIR = @valores_registro[1];
-			print "proc: $PROCDIR\n";
 			$cantDir++;
 		}		
 		elsif (@valores_registro[0] eq "REPODIR")
 		{
 			$REPODIR = @valores_registro[1];
-			print "repo: $REPODIR\n";
 			$cantDir++;
 		}
 		if ($cantDir == 3)
@@ -177,8 +193,9 @@ sub obtenerDirectorios{
 			last;
 		}
 	}
-	
 	close(CONF);
+	
+	#print "DIRS: MAE: $MAEDIR, PROC: $PROCDIR, REPO: $REPODIR\n\n";
 }
 
 #
@@ -230,6 +247,7 @@ sub mostrarAyuda{
 
     # obtengo el comando del cual quiere obtener ayuda.
     my $param = @_[0];
+    my $parametros_obligatorios = "Parámetros obligatorios:\n"."		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n"."Parámetros para otros filtros:\n"."		-x=<valor de diferencia>\n"."		-s=<sistema>\n"."		-a=<año>\n"."		-pe=<período=[AAAA/MM]>: indica el mes de un año en el cual se quiere que esté\n"."			comprendido el mes contable del reporte.\n"."		-rp=<rango de períodos=[AAAA/MM]-[AAAA/MM]>: ídem punto anterior\n"."		    para un rango de meses.\n\n";
     chomp($param);
 
     if ( uc($param) eq "" )
@@ -259,9 +277,9 @@ sub mostrarAyuda{
 		print "Parámetros para otros filtros:\n";
 		print "		-s=<sistema>\n";
 		print "		-a=<año>\n";
-		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
+		print "		-pe=<período=[AAAA/MM]>: indica el mes de un año en el cual se quiere que esté\n";
 		print "			comprendido el mes contable del reporte.\n";
-		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
+		print "		-rp=<rango de períodos=[AAAA/MM]-[AAAA/MM]>: ídem punto anterior\n";
 		print "		    para un rango de meses.\n\n";
     }
     elsif ( uc($param) eq uc("-dm") )
@@ -270,16 +288,7 @@ sub mostrarAyuda{
         print "la diferencia (en valor absoluto) entre el monto restante del maestro\n";
         print "y el monto restante del país es mayor a X monto. El valor X se pasa como\n";
         print "parámetro. En caso de no pasarse nada se muestran todos los registros.\n\n";
-        print "Parámetros obligatorios:\n";
-		print "		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n";
-		print "Parámetros para otros filtros:\n";
-		print "		-x=<valor de diferencia>\n";
-		print "		-s=<sistema>\n";
-		print "		-a=<año>\n";
-		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
-		print "			comprendido el mes contable del reporte.\n";
-		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
-		print "		    para un rango de meses.\n\n";
+        print "$parametros_obligatorios";
     }
     elsif ( uc($param) eq uc("-dp") )
     {
@@ -287,16 +296,7 @@ sub mostrarAyuda{
         print "la diferencia (en valor absoluto) entre el monto restante del maestro\n";
         print "y el monto restante del país es mayor al X %. El valor X se pasa como\n";
         print "parámetro. En caso de no pasarse nada se muestran todos los registros.\n\n";
-        print "Parámetros obligatorios:\n";
-		print "		-p=<país>: Es el país acerca del cual quiero obtener la información.\n\n";
-		print "Parámetros para otros filtros:\n";
-		print "		-x=<valor de diferencia>\n";
-		print "		-s=<sistema>\n";
-		print "		-a=<año>\n";
-		print "		-pe=<período=[AÑO/MES]>: indica el mes de un año en el cual se quiere que esté\n";
-		print "			comprendido el mes contable del reporte.\n";
-		print "		-rp=<rango de períodos=[AÑO/MES]-[AÑO/MES]>: ídem punto anterior\n";
-		print "		    para un rango de meses.\n\n";
+        print "$parametros_obligatorios";
     }
 
     elsif ( uc($param) eq uc("-g") )
@@ -339,12 +339,12 @@ sub obtenerPrestamosPais{
         
         # tomo los datos necesarios para la comparacion
         $anio_ctb   = @valores_registro[1];
-        $mes_ctb    = @valores_registro[2];
+        $mes_ctb    = &normalizarDia(@valores_registro[2]);
         $dia_ctb    = @valores_registro[3];
         $fecha_grab = @valores_registro[14];
-
+        
         # compongo la clave de busqueda
-        $clave_p_p  = @valores_registro[5].$anio_ctb.$mes_ctb;
+        $clave_p_p  = @valores_registro[5].int($anio_ctb).int($mes_ctb);
         
         # almaceno los valores en una estructura hash
         if ( exists $registros_prestamos{$clave_p_p} )
@@ -388,15 +388,16 @@ sub obtenerPrestamosImpagos{
     # abro el archivo maestro (PPI)
     open (PPI,"$MAEDIR/PPI.mae") || die "ERROR: No puedo abrir el fichero PPI.\n";
     
-    #print "CLAVES PPI:\n";
     # realizo la lectura para ver que registros coinciden con el filtro
     while (<PPI>)
     {
         chomp; # quito el eol
-
-        # guardo los valores en una cadena
+		
+	    # guardo los valores en una cadena
         @valores_registro = split(';',$_);
-            
+        
+        @valores_registro[3] = &normalizarDia(@valores_registro[3]);
+        
         # verifico que cumpla todas las condiciones
         if ( uc($PAIS_ID) ne uc(@valores_registro[0])){ next; }
         if ( $SIS_ID ne "" ) 
@@ -413,7 +414,7 @@ sub obtenerPrestamosImpagos{
         }
         if ( $RANGO_PERIODOS ne "" )
         {
-            if ( uc(substr($RANGO_PERIODOS,0,7)) gt uc(@valores_registro[2]."/".@valores_registro[3])
+			if ( uc(substr($RANGO_PERIODOS,0,7)) gt uc(@valores_registro[2]."/".@valores_registro[3])
                || uc(substr($RANGO_PERIODOS,8,7)) lt uc(@valores_registro[2]."/".@valores_registro[3])){ next; }
         }
         
@@ -443,8 +444,8 @@ sub obtenerPrestamosImpagos{
         $reg = join(';',@valores_registro);
         
         # creo la clave del registro
-        $clave_ppi = $PRES_ID.@valores_registro[2].@valores_registro[3];
-            
+        $clave_ppi = $PRES_ID.int(@valores_registro[2]).int(@valores_registro[3]);
+        
         # guardo los valores obtenidos en una estructura hash
         if ( ! exists $registros_ppi{$clave_ppi} )
         {
@@ -474,7 +475,6 @@ sub mostrarRecomendacion{
     # recorro los datos y voy viendo si es necesario el recalculo
     foreach my $llave (keys %registros_ppi)
     {
-        #print "Llave ppi $llave\n";
         # me fijo que exista en ambos archivos
         if ( exists ($registros_prestamos{$llave}) )
         {
@@ -525,7 +525,7 @@ sub mostrarRecomendacion{
     # imprimo la cabecera
     my $titulos = "\nREPORTE DE RECÁLCULOS\n\nParámetros ingresados\n";
     $titulos .= $COMANDOS_USADOS."\n\n";
-    $titulos .= sprintf 	"%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s", 
+    $titulos .= sprintf 	"%-15s%-15s%-15s%-15s%-15s%-15s%-15s%s", 
 							"Prestamo","Cliente","ECM","ECP","MRM","MRP","Recomendacion",
 							"\n---------------------------------------------------------------------------------------------------------\n";
     print "$titulos";
@@ -591,8 +591,6 @@ sub mostrarRecomendacion{
 #
 sub mostrarDiferencia{
     
-    my @reg_ppi;
-    my @reg_p_p;
     my @aux;
         
     my $linea;
@@ -972,7 +970,6 @@ sub analizarParametros{
 #                    #
 ######################
 
-	print "comence";
 	# primero obtengo los directorios necesarios para el procesamiento
 	&obtenerDirectorios;
 	# tomo los parametros y los convierto a strings
