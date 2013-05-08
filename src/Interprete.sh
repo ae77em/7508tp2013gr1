@@ -41,7 +41,7 @@ function codigoSystem() {
 
 #INTERPRETE
 
-#Se valida si ya hay otro interprete corriendo y si el ambiente esta inicializado correctamente
+#Se valida si el ambiente esta inicializado correctamente
 
 CONFDIR=../conf
 
@@ -81,7 +81,7 @@ if [ $validacion1 -eq 0 ]
          rm $ACEPDIR/$archivo
           
        else  
-        
+        GlogX "Interprete.sh" "I" "Procesando archivo: $archivo" "Interprete"
         #Verificar que el archivo no esta duplicado en PROCDIR
         verificarDuplicado $archivo $PROCDIR
 
@@ -115,7 +115,7 @@ if [ $validacion1 -eq 0 ]
             chmod 777 $PROCDIR
             touch auxiliar
   
-	    while IFS=$'\n' read -r linea || [[ -n "$linea" ]]
+	          while IFS=$'\n' read -r linea || [[ -n "$linea" ]]
             do
 
              echo $linea > auxiliar         
@@ -150,7 +150,7 @@ if [ $validacion1 -eq 0 ]
 		 	   	    		mes=`expr substr $fecha 6 2`
 		       	  			dia=`expr substr $fecha 9 2`
 					else 
-						GlogX "Interprete.sh" "E" "Formato de fecha invalido: $archivo" "Interprete"
+						GlogX "Interprete.sh" "E" "Formato de fecha invalido" "Interprete"
 						anio="AAAA"
 		 	   	    		mes="MM"
 		       	  			dia="DD"
@@ -277,7 +277,7 @@ if [ $validacion1 -eq 0 ]
              if [ -z $lineaCliente ]              
                 then 
                   cliente="Cliente sin identificacion"
-		  GlogX "Interprete.sh" "E" "Cliente sin especificar: $PRES_ID" "Interprete"
+		              GlogX "Interprete.sh" "E" "Cliente sin especificar: $PRES_ID" "Interprete"
                 else
                   cliente=`cut -f $lineaCliente -d$sepCampos auxiliar`                                         
              fi 
@@ -333,7 +333,7 @@ if [ $validacion1 -eq 0 ]
                  MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
               
           else  #En caso de estar 
-	    GlogX "Interprete.sh" "I" "El archivo $achivo se encuentra duplicado" "Interprete"
+	          GlogX "Interprete.sh" "I" "El archivo se encuentra duplicado" "Interprete"
             MoverX "$ACEPDIR/$archivo" "$RECHDIR" "Interprete.sh"
                            
           fi  
