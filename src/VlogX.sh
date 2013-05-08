@@ -4,12 +4,7 @@
 # -n: muestra las ultimas n lineas
 # string: filtra las lineas que tienen el string
 function VlogX {
-   # Cantidad de lineas a dejar
-   nroLineas=50
-    
-   echo "entra"
-
-   # Si no se pasan los 2 parametros solicitados, es un error
+   # Si no se pasan los 4 parametros solicitados, es un error
    if [ $# -eq 4 ]
    then
       return 1
@@ -28,13 +23,11 @@ function VlogX {
    fi
    
    # Leo el log segun el filtro
-   # When Who Where What Why
    
    if [[ $filtro =~ \-[0-9]+ ]]
    then
       tail $filtro $directorioLog/$archivoLog$LOGEXT
    else
-      echo "llegue"
       cat $directorioLog/$archivoLog$LOGEXT | grep -i $filtro
    fi   
    
