@@ -29,6 +29,7 @@ $VALOR_DIFERENCIA=0;# diferencia para los comandos de diferencia
 $PERIODO="";
 $RANGO_PERIODOS="";
 $COMANDOS_USADOS="";
+$USUARIO="";
 
 %registros_ppi;
 %registros_prestamos;
@@ -80,16 +81,16 @@ sub inicializarGlobales{
 #
 # Se fija si la respuesta es si o no, o si es invalida
 #
-sub normalizarDia{
+sub normalizarValorDeUnDigito{
 	
-	my $dia = @_[0];
+	my $valor = @_[0];
 	
-	if( int($dia) < 10 )
+	if( int($valor) < 10 )
 	{
-		$dia = '0'.int($dia);
+		$dia = '0'.int($valor);
 	}
 		
-	return $dia;
+	return $valor;
 }
 
 #
@@ -176,16 +177,19 @@ sub obtenerDirectorios{
 		if (@valores_registro[0] eq "MAEDIR")
 		{
 			$MAEDIR = @valores_registro[1];
+			$USUARIO = @valores_registro[2];
 			$cantDir++;
 		}
 		elsif (@valores_registro[0] eq "PROCDIR")
 		{
 			$PROCDIR = @valores_registro[1];
+			$USUARIO = @valores_registro[2];
 			$cantDir++;
 		}		
 		elsif (@valores_registro[0] eq "REPODIR")
 		{
 			$REPODIR = @valores_registro[1];
+			$USUARIO = @valores_registro[2];
 			$cantDir++;
 		}
 		if ($cantDir == 3)
@@ -204,38 +208,77 @@ sub obtenerDirectorios{
 # param2 : cantidad de columnas que tiene el reporte.
 #
 sub grabarRecalculo{
+	
+	my $nombreArchivo = @_[0];
+    my $CodigoSistema;
+	my $AnioContable;
+	my $MesContable;
+	my $DiaContable;
+	my $EstadoContable;
+	my $CodigoPrestamo;
+	my $MontoPrestamo;
+	my $MontoImpago;
+	my $MontoInteresDevengado;
+	my $MontoInteresNoDevengado;
+	my $MontoDebitado;
+	my $MontoRestante;
+	my $CodigoCliente;
+	my $NombreCliente;
+	my $FechaGrabacion;
+	my $UsuarioGrabacion;
+	my $linea="";
     
-    my $nombreArchivo = @_[0];
-    my $cantColumnas = @_[1];
-    my $aux = 0;
-    my $valor_recomendacion="";
-    my $fila_a_grabar = "";
-        
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	$year += 1900;
+	$mon++;
+	
+	$mon = "".&normalizarValorDeUnDigito($mon);
+	$mday = "".&normalizarValorDeUnDigito($mday);
+
     open(ARCHIVO_REPORTE,">>$REPODIR/$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
     
-    foreach $elem (@reporte)
+     # recorro los datos y voy viendo si es necesario el recalculo
+    foreach my $llave (keys %registros_ppi)
     {
-        chomp;
-        $fila_a_grabar.=$elem;
-        $aux++;
-        
-        if ( $aux < $cantColumnas )
+        # me fijo que exista en ambos archivos
+        if ( exists ($registros_prestamos{$llave}) )
         {
-            $fila_a_grabar.=";";
+            # obtengo los datos del registro
+            @reg_p_p = split(";",$registros_prestamos{$llave});
+            @reg_ppi = split(";",$registros_ppi{$llave});
+
+            #print "reg_p_p: $registros_prestamos{$llave}\n";
+            #print "reg_ppi: $registros_ppi{$llave}\n";
+
+            # si es recalculo lo grabo
+            if ( ( $reg_ppi[5] eq "SMOR" && $reg_p_p[4] ne "SMOR" ) || ( $reg_ppi[14] lt $reg_p_p[11]  ) )
+            {
+                	$CodigoSistema = @reg_ppi[1];chomp($CodigoSistema);
+					$AnioContable = @reg_ppi[2];chomp($AnioContable);
+					$MesContable = @reg_ppi[3];chomp($MesContable);
+					$DiaContable = @reg_p_p[3];chomp($EstadoContable);
+					$EstadoContable = @reg_ppi[5];chomp($EstadoContable);
+					$CodigoPrestamo = @reg_ppi[7];chomp($CodigoPrestamo);
+					$MontoPrestamo = @reg_ppi[9];chomp($MontoPrestamo);
+					$MontoImpago = @reg_ppi[10];chomp($MontoImpago);
+					$MontoInteresDevengado = @reg_ppi[11];chomp($MontoInteresDevengado);
+					$MontoInteresNoDevengado = @reg_ppi[12];chomp($MontoInteresNoDevengado);
+					$MontoDebitado = @reg_ppi[13];chomp($MontoDebitado);
+					$MontoRestante = @reg_ppi[14];chomp($MontoRestante);
+					$CodigoCliente = @reg_p_p[12];chomp($CodigoCliente);
+					$NombreCliente = @reg_p_p[13];chomp($NombreCliente);
+					$FechaGrabacion = "$year/$mon/$mday";
+					$UsuarioGrabacion = $USUARIO;chomp($UsuarioGrabacion);
+					
+					# grabo el registro
+					#$linea = $CodigoSistema.";".$AnioContable.";".$MesContable.";".$DiaContable.";".$EstadoContable.";".$CodigoPrestamo.";".$MontoPrestamo.";".$MontoImpago.";".$MontoInteresDevengado.";".$MontoInteresNoDevengado.";".$MontoDebitado.";".$MontoRestante.";".$CodigoCliente.";".$NombreCliente.";".$FechaGrabacion.";".$UsuarioGrabacion."\n";
+					print ARCHIVO_REPORTE "$CodigoSistema;$AnioContable;$MesContable;$DiaContable;$EstadoContable;$CodigoPrestamo;$MontoPrestamo;";
+					print ARCHIVO_REPORTE "$MontoImpago;$MontoInteresDevengado;$MontoInteresNoDevengado;$MontoDebitado;$MontoRestante;$CodigoCliente;";
+					print ARCHIVO_REPORTE "$NombreCliente;$FechaGrabacion;$UsuarioGrabacion\n";
+
+            }
         }
-        # paso al siguiente renglon
-        else
-        {
-			# si es un recalculo lo grabo, si no, no
-			if ( $elem eq "RECALCULO" )
-			{
-				$fila_a_grabar.="\n";
-				print ARCHIVO_REPORTE "$fila_a_grabar";
-			}
-			$fila_a_grabar="";
-            $aux = 0;
-        }
-    }
+    }   
     
     close(ARCHIVO_REPORTE);
 }
@@ -339,7 +382,7 @@ sub obtenerPrestamosPais{
         
         # tomo los datos necesarios para la comparacion
         $anio_ctb   = @valores_registro[1];
-        $mes_ctb    = &normalizarDia(@valores_registro[2]);
+        $mes_ctb    = &normalizarValorDeUnDigito(@valores_registro[2]);
         $dia_ctb    = @valores_registro[3];
         $fecha_grab = @valores_registro[14];
         
@@ -396,7 +439,7 @@ sub obtenerPrestamosImpagos{
 	    # guardo los valores en una cadena
         @valores_registro = split(';',$_);
         
-        @valores_registro[3] = &normalizarDia(@valores_registro[3]);
+        @valores_registro[3] = &normalizarValorDeUnDigito(@valores_registro[3]);
         
         # verifico que cumpla todas las condiciones
         if ( uc($PAIS_ID) ne uc(@valores_registro[0])){ next; }
@@ -439,9 +482,13 @@ sub obtenerPrestamosImpagos{
         
         # agrego a los valores el monto restante
         push(@valores_registro,$MT_REST);
+	
+		print "vañpres registro: @valores_registro\n";
 
         # almaceno el array en un string
         $reg = join(';',@valores_registro);
+        
+        print "Registro ppi procesado: $reg\n";
         
         # creo la clave del registro
         $clave_ppi = $PRES_ID.int(@valores_registro[2]).int(@valores_registro[3]);
@@ -456,8 +503,8 @@ sub obtenerPrestamosImpagos{
     # cierro el archivo
     close(PPI);
 
-    #print "REGISTROS PPI\n";
-    #print map "Hash: $_ = $registros_ppi{$_}\n", keys %registros_ppi;
+    print "REGISTROS PPI\n";
+    print map "Hash: $_ = $registros_ppi{$_}\n", keys %registros_ppi;
 }
 
 #
@@ -465,8 +512,6 @@ sub obtenerPrestamosImpagos{
 #
 sub mostrarRecomendacion{
 
-    my @reg_ppi;
-    my @reg_p_p;
     my @aux;
         
     my $linea;
@@ -537,6 +582,12 @@ sub mostrarRecomendacion{
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 	$year += 1900;
 	$mon++;
+	$mon = &normalizarValorDeUnDigito($mon);
+	$mday = &normalizarValorDeUnDigito($mday);
+	$hour = &normalizarValorDeUnDigito($hour);
+	$min = &normalizarValorDeUnDigito($min);
+	$sec = &normalizarValorDeUnDigito($sec);
+	
 	my $descriptor = $year.$mon.$mday.$hour.$min.$sec;
 		
 	# si me pidieron guardar el reporte creo el archivo
@@ -698,6 +749,11 @@ sub mostrarDiferencia{
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 	$year += 1900;
 	$mon++;
+	$mon = &normalizarValorDeUnDigito($mon);
+	$mday = &normalizarValorDeUnDigito($mday);
+	$hour = &normalizarValorDeUnDigito($hour);
+	$min = &normalizarValorDeUnDigito($min);
+	$sec = &normalizarValorDeUnDigito($sec);
 	my $descriptor = $year.$mon.$mday.$hour.$min.$sec;
     
     # si me pidieron guardar el reporte creo el archivo
