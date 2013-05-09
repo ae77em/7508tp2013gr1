@@ -199,6 +199,22 @@ sub obtenerDirectorios{
 	}
 	close(CONF);
 	
+	#renombro los archivos procesados
+	opendir TEMP, $PROCDIR;
+	my @nombres = readdir TEMP;
+	chdir $PROCDIR;
+		
+	for my $antiguo (@nombres) 
+	{
+        my $name = $antiguo;
+		if ( $name =~ /prestamo/ )
+		{
+			$name =~ tr/A-Z/a-z/;
+			rename ($antiguo, $name) or die "ERROR: Imposible renombrar $antiguo a $name: $!\n";          
+		}
+    }	
+	
+	closedir TEMP;
 	#print "DIRS: MAE: $MAEDIR, PROC: $PROCDIR, REPO: $REPODIR\n\n";
 }
 
@@ -251,32 +267,31 @@ sub grabarRecalculo{
             #print "reg_ppi: $registros_ppi{$llave}\n";
 
             # si es recalculo lo grabo
-            if ( ( $reg_ppi[5] eq "SMOR" && $reg_p_p[4] ne "SMOR" ) || ( $reg_ppi[14] lt $reg_p_p[11]  ) )
-            {
-                	$CodigoSistema = @reg_ppi[1];chomp($CodigoSistema);
-					$AnioContable = @reg_ppi[2];chomp($AnioContable);
-					$MesContable = @reg_ppi[3];chomp($MesContable);
-					$DiaContable = @reg_p_p[3];chomp($EstadoContable);
-					$EstadoContable = @reg_ppi[5];chomp($EstadoContable);
-					$CodigoPrestamo = @reg_ppi[7];chomp($CodigoPrestamo);
-					$MontoPrestamo = @reg_ppi[9];chomp($MontoPrestamo);
-					$MontoImpago = @reg_ppi[10];chomp($MontoImpago);
-					$MontoInteresDevengado = @reg_ppi[11];chomp($MontoInteresDevengado);
-					$MontoInteresNoDevengado = @reg_ppi[12];chomp($MontoInteresNoDevengado);
-					$MontoDebitado = @reg_ppi[13];chomp($MontoDebitado);
-					$MontoRestante = @reg_ppi[14];chomp($MontoRestante);
-					$CodigoCliente = @reg_p_p[12];chomp($CodigoCliente);
-					$NombreCliente = @reg_p_p[13];chomp($NombreCliente);
-					$FechaGrabacion = "$year/$mon/$mday";
-					$UsuarioGrabacion = $USUARIO;chomp($UsuarioGrabacion);
-					
-					# grabo el registro
-					#$linea = $CodigoSistema.";".$AnioContable.";".$MesContable.";".$DiaContable.";".$EstadoContable.";".$CodigoPrestamo.";".$MontoPrestamo.";".$MontoImpago.";".$MontoInteresDevengado.";".$MontoInteresNoDevengado.";".$MontoDebitado.";".$MontoRestante.";".$CodigoCliente.";".$NombreCliente.";".$FechaGrabacion.";".$UsuarioGrabacion."\n";
-					print ARCHIVO_REPORTE "$CodigoSistema;$AnioContable;$MesContable;$DiaContable;$EstadoContable;$CodigoPrestamo;$MontoPrestamo;";
-					print ARCHIVO_REPORTE "$MontoImpago;$MontoInteresDevengado;$MontoInteresNoDevengado;$MontoDebitado;$MontoRestante;$CodigoCliente;";
-					print ARCHIVO_REPORTE "$NombreCliente;$FechaGrabacion;$UsuarioGrabacion\n";
-
-            }
+            #if ( ( $reg_ppi[5] eq "SMOR" && $reg_p_p[4] ne "SMOR" ) || ( $reg_ppi[14] lt $reg_p_p[11]  ) )
+            #{
+				$CodigoSistema = @reg_ppi[1];chomp($CodigoSistema);
+				$AnioContable = @reg_ppi[2];chomp($AnioContable);
+				$MesContable = @reg_ppi[3];chomp($MesContable);
+				$DiaContable = @reg_p_p[3];chomp($EstadoContable);
+				$EstadoContable = @reg_ppi[5];chomp($EstadoContable);
+				$CodigoPrestamo = @reg_ppi[7];chomp($CodigoPrestamo);
+				$MontoPrestamo = @reg_ppi[9];chomp($MontoPrestamo);
+				$MontoImpago = @reg_ppi[10];chomp($MontoImpago);
+				$MontoInteresDevengado = @reg_ppi[11];chomp($MontoInteresDevengado);
+				$MontoInteresNoDevengado = @reg_ppi[12];chomp($MontoInteresNoDevengado);
+				$MontoDebitado = @reg_ppi[13];chomp($MontoDebitado);
+				$MontoRestante = @reg_ppi[14];chomp($MontoRestante);
+				$CodigoCliente = @reg_p_p[12];chomp($CodigoCliente);
+				$NombreCliente = @reg_p_p[13];chomp($NombreCliente);
+				$FechaGrabacion = "$year/$mon/$mday";
+				$UsuarioGrabacion = $USUARIO;chomp($UsuarioGrabacion);
+				
+				# grabo el registro
+				$linea = $CodigoSistema.";".$AnioContable.";".$MesContable.";".$DiaContable.";".$EstadoContable.";".$CodigoPrestamo.";".$MontoPrestamo.";".$MontoImpago.";".$MontoInteresDevengado.";".$MontoInteresNoDevengado.";".$MontoDebitado.";".$MontoRestante.";".$CodigoCliente.";".$NombreCliente.";".$FechaGrabacion.";".$UsuarioGrabacion;
+				# les quito los car return y los newline
+				$linea =~ s/\r|\n//g;
+				print ARCHIVO_REPORTE "$linea\n";
+            #}
         }
     }   
     
@@ -483,12 +498,12 @@ sub obtenerPrestamosImpagos{
         # agrego a los valores el monto restante
         push(@valores_registro,$MT_REST);
 	
-		print "vañpres registro: @valores_registro\n";
+		#print "vañpres registro: @valores_registro\n";
 
         # almaceno el array en un string
         $reg = join(';',@valores_registro);
         
-        print "Registro ppi procesado: $reg\n";
+        #print "Registro ppi procesado: $reg\n";
         
         # creo la clave del registro
         $clave_ppi = $PRES_ID.int(@valores_registro[2]).int(@valores_registro[3]);
@@ -503,8 +518,8 @@ sub obtenerPrestamosImpagos{
     # cierro el archivo
     close(PPI);
 
-    print "REGISTROS PPI\n";
-    print map "Hash: $_ = $registros_ppi{$_}\n", keys %registros_ppi;
+    #print "REGISTROS PPI\n";
+    #print map "Hash: $_ = $registros_ppi{$_}\n", keys %registros_ppi;
 }
 
 #
