@@ -1,0 +1,16 @@
+README GRUPO 01
+---------------
+
+1-  Abrir una terminal, posicionarse donde se encuentre el archivo grupo01.tar.gz y extraer el contenido del mismo ejecutando el comando tar xvzf grupo01.tar.gz.
+
+2- Moverse hasta el directorio grupo01/instalacion con el comando: cd grupo01/instalacion
+
+3- Luego, parado desde grupo01/instalacion, ejecutar el comando: ./InstalarX.sh
+
+4- Una vez terminado el proceso de instalación, volvemos al directorio inicial (grupo01), nos paramos en el directorio de binarios (cuyo nombre elegimos en el proceso de instalación), aquí se asume que fue bin e inicializamos el ambiente de la siguiente manera: cd ../bin/. InicioX.sh 
+
+5- Una vez iniciado el ambiente, el demonio ya estará corriendo preparado para recibir los archivos externos en el directorio de arribos y proceder con la correcta ejecución del programa.
+
+6- En caso de querer detener la ejecución del demonio, ejecutamos un ps en la consola obtenemos el número de proceso del demonio y ubicados en el directorio de binarios de grupo01, ejecutamos el siguiente comando: ./StopX.sh NNNNNN donde NNNNNN es el número de proceso.
+
+7- En caso de querer reanudar la ejecución del demonio, ubicados en el directorio de binarios de grupo01, ejecutamos el siguiente comando: ./StartX.sh "<comando invocante>" "DetectaX.sh <Nro ciclos> <Tiempo de espera>"
