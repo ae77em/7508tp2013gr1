@@ -321,7 +321,8 @@ function main {
    else
         #source "$BINDIR/StartX.sh";
 	StartX.sh "InicioX" "DetectaX.sh $CANLOOP $TESPERA"
-	procssid=$(ps | grep "DetectaX" | cut -f1 -d' ')
+	procssid=$(ps | grep "DetectaX" | sed 's-\(^ *\)\([0-9]*\)\(.*$\)-\2-g')
+	echo "proc: $procssid"
    fi
    
    mostrarMensajeInstalacionFinalizada
