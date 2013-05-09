@@ -3,9 +3,9 @@
 #===========================================================
 # ARCHIVO: InstalarX.sh
 #
-# FIRMA: TODO:HACER!
+# FIRMA: ./InstalarX.sh
 #
-# DESCRIPCION: TODO:HACER!
+# DESCRIPCION: Comando utilizado para realizar la instalacion de ControlX
 #
 # AUTOR: Bayetto, Ignacio Javier. 
 # PADRON: 88896
@@ -490,7 +490,6 @@ function inicializarVariablesADefinir {
 #Modifica el archivo de configuración.
 function modificarArchivoConfiguracion {
 
-	#TODO: completar!
 	echo "
 Actualizando la configuración del sistema..."
 
@@ -502,8 +501,6 @@ Actualizando la configuración del sistema..."
 	fecha="${fecha} $hora"
 
 	usuario=`who | awk '{ print $1 }'`
-
-	#TODO: faltan variables para los mae
 
 	GRUPO="${GRUPO}=$usuario=$fecha"
 	BINDIR="${BINDIR}=$usuario=$fecha"
@@ -1464,9 +1461,7 @@ Instalación Finalizada"
 	#grabarLog "INFORMATIVO" "Instalacion Finalizada" 
 
 	#24 - FIN
-	#TODO: hacer!
-	#Cerrar el archivo de log
-	#Terminar el proceso	
+	 
 
 }
 
