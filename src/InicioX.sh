@@ -3,9 +3,9 @@
 #===========================================================
 # ARCHIVO: InicioX.sh
 #
-# FIRMA: TODO:HACER!
+# FIRMA: . InicioX.sh
 #
-# DESCRIPCION: TODO:HACER!
+# DESCRIPCION: Comando encargado de inicializar el ambiente para correr CONTROLX
 # \
 # AUTOR: De Zan, Ignacio. 
 # PADRON: 91525
