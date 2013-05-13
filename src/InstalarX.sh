@@ -78,7 +78,7 @@ function definirLogExt {
 		cond="ok"
 		echo "
 * Defina la extensión para los archivos de log:
-* Sugerencia: ($LOGEXT)"
+* Sugerencia: ($extLog)"
 		read extLog
 
 		#Si la persona no ingreso nada entonces se toma por default la sugerencia
