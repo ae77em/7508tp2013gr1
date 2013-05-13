@@ -39,7 +39,8 @@ function chequearComandos {
           fi
          
      else
-        echo -e "El comando $i no existe\n" 
+        echo -e "El comando $i no existe\n"
+        salir="s"
      fi
    done  
 }
@@ -62,7 +63,8 @@ function chequearMaestros {
           fi
          
      else
-        echo -e "El archivo maestro $i no existe\n" 
+        echo -e "El archivo maestro $i no existe\n"
+        salir="s"
      fi
    done  
 
@@ -86,7 +88,8 @@ function chequearTablas {
           fi
          
      else
-        echo -e "El archivo maestro $i no existe\n"
+        echo -e "El archivo $i no existe\n"
+        salir="s"
      fi
    done  
 
@@ -283,7 +286,9 @@ Demonio corriendo bajo el no.: <$procssid> "
 #Funcion principal
 
 function main {
-  
+
+  salir="n"
+
   variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
  
   comandos=(InicioX.sh DetectaX.sh Interprete.sh ReporteX.pl MoverX.sh StartX.sh StopX.sh GlogX.sh VlogX.sh)
@@ -300,32 +305,42 @@ function main {
 
   chequearMaestros
   chequearTablas
- 
-  ingresarCantLoop
-  ingresartEspera
- 
- lanzarDetectaX
-    
-  if [ $? == 1 ]; then
 
-     msj="Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: \n
+  if [ $salir == "n" ]; then
+  
+    ingresarCantLoop
+    ingresartEspera
+ 
+    lanzarDetectaX
+    
+     if [ $? == 1 ]; then
+
+      msj="Usted ha elegido no arrancar DetectaX, para hacerlo manualmente debe hacerlo de la siguiente manera: \n
              
           Uso: DetectaX.sh CANTLOOP TESPERA \n
              
           CANTLOOP es la cantidad de ciclos (debe ser un numero entero positivo) que quiere que ejecute el demonio, \n
           y TESPERA es el tiempo (mayor a 1 minuto) de espera entre cada ciclo.\n"
       
-     echo -e $msj
-     grabarLog "I" "$msj" 
+       echo -e $msj
+       grabarLog "I" "$msj" 
    
-   else
+     else
         #source "$BINDIR/StartX.sh";
+
 	StartX.sh "InicioX" "DetectaX.sh $CANLOOP $TESPERA"
-	procssid=$(ps | grep "DetectaX" | sed 's-\(^ *\)\([0-9]*\)\(.*$\)-\2-g')
-	echo "proc: $procssid"
-   fi
+	
+        procssid=$(ps | grep "DetectaX" | sed 's-\(^ *\)\([0-9]*\)\(.*$\)-\2-g')
+	
+        #echo "proc: $procssid"
+     fi
+       mostrarMensajeInstalacionFinalizada
+  
+  else
+     echo -e "Fin de la ejecucion, faltante de archivos"
+  fi
    
-   mostrarMensajeInstalacionFinalizada
+   
 }
 
 main
