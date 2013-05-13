@@ -46,6 +46,26 @@ $USUARIO="";
 ################
 
 #
+# Me fijo que esten inicializadas las variables de ambiente
+#
+sub verificarAmbiente{
+	
+	if ( not ( 	
+				$ENV{'GRUPO'} and $ENV{'BINDIR'} and $ENV{'MAEDIR'} and $ENV{'ARRIDIR'} and $ENV{'ACEPDIR'} and $ENV{'RECHDIR'}
+				and $ENV{'PROCDIR'}	and $ENV{'REPODIR'} and $ENV{'LOGDIR'} and $ENV{'LOGEXT'} and $ENV{'LOGSIZE'} and $ENV{'DATASIZE'}
+			)
+		)
+	{
+		print "El programa no se puede ejecutar en el ambiente actual.\n";
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+#
 # Inicializo las variables globales
 #
 sub inicializarGlobales{
@@ -199,22 +219,6 @@ sub obtenerDirectorios{
 	}
 	close(CONF);
 	
-	#renombro los archivos procesados
-	opendir TEMP, $PROCDIR;
-	my @nombres = readdir TEMP;
-	chdir $PROCDIR;
-		
-	for my $antiguo (@nombres) 
-	{
-        my $name = $antiguo;
-		if ( $name =~ /prestamo/ )
-		{
-			$name =~ tr/A-Z/a-z/;
-			rename ($antiguo, $name) or die "ERROR: Imposible renombrar $antiguo a $name: $!\n";          
-		}
-    }	
-	
-	closedir TEMP;
 	#print "DIRS: MAE: $MAEDIR, PROC: $PROCDIR, REPO: $REPODIR\n\n";
 }
 
@@ -385,49 +389,59 @@ sub obtenerPrestamosPais{
     # paso a minusculas la descripcion del pais (para abrir el archivo de prestamos por pais)
     $PAIS_DESC =~ tr/A-Z/a-z/;
     
-    #  el archivo de prestamos.pais
-    open(PRESTAMOS_PAIS,"$PROCDIR/prestamos.".$PAIS_DESC);
-    
-    while(<PRESTAMOS_PAIS>)
-    {   
-        chomp; # quito el eol
+    #renombro los archivos procesados
+	opendir TEMP, $PROCDIR;
+	my @archivos = readdir TEMP;
+	chdir $PROCDIR;
+		
+	for my $archivo (@archivos) 
+	{
+		if ( $archivo =~ /prest.+\.$PAIS_DESC/i )
+		{
+			#  el archivo de prestamos.pais
+			open(PRESTAMOS_PAIS,"$PROCDIR/$archivo");
+			
+			while(<PRESTAMOS_PAIS>)
+			{   
+				chomp; # quito el eol
 
-        # obtengo los datos y los almaceno en un array
-        @valores_registro = split(';',$_);
-        
-        # tomo los datos necesarios para la comparacion
-        $anio_ctb   = @valores_registro[1];
-        $mes_ctb    = &normalizarValorDeUnDigito(@valores_registro[2]);
-        $dia_ctb    = @valores_registro[3];
-        $fecha_grab = @valores_registro[14];
-        
-        # compongo la clave de busqueda
-        $clave_p_p  = @valores_registro[5].int($anio_ctb).int($mes_ctb);
-        
-        # almaceno los valores en una estructura hash
-        if ( exists $registros_prestamos{$clave_p_p} )
-        {
-            # obtengo los datos almacenados
-            $aux = split(';',$registros_prestamos{$clave_p_p});
-            # si la fecha de grabacion del nuevo registro es mas actual lo almaceno
-            if ( uc($aux[14]) lt uc($fecha_grab)  )
-            {
-                # borro y reinserto datos validos
-                delete($registros_prestamos{$clave_p_p}); 
-                $registros_prestamos{$clave_p_p} = $_;
+				# obtengo los datos y los almaceno en un array
+				@valores_registro = split(';',$_);
+				
+				# tomo los datos necesarios para la comparacion
+				$anio_ctb   = @valores_registro[1];
+				$mes_ctb    = &normalizarValorDeUnDigito(@valores_registro[2]);
+				$dia_ctb    = @valores_registro[3];
+				$fecha_grab = @valores_registro[14];
+				
+				# compongo la clave de busqueda
+				$clave_p_p  = @valores_registro[5].int($anio_ctb).int($mes_ctb);
+				
+				# almaceno los valores en una estructura hash
+				if ( exists $registros_prestamos{$clave_p_p} )
+				{
+					# obtengo los datos almacenados
+					$aux = split(';',$registros_prestamos{$clave_p_p});
+					# si la fecha de grabacion del nuevo registro es mas actual lo almaceno
+					if ( uc($aux[14]) lt uc($fecha_grab)  )
+					{
+						# borro y reinserto datos validos
+						delete($registros_prestamos{$clave_p_p}); 
+						$registros_prestamos{$clave_p_p} = $_;
 
-            }
-            # si no, no hago nada...
-        }
-        else
-        {
-            $registros_prestamos{$clave_p_p} = $_;
-        }
-
-    }
-
-    close(PRESTAMOS_PAIS);
-    
+					}
+					# si no, no hago nada...
+				}
+				else
+				{
+					$registros_prestamos{$clave_p_p} = $_;
+				}
+			}
+			close PRESTAMOS_PAIS;
+		}
+    }	
+	
+	closedir TEMP;    
     #print "REGISTROS PRESTAMOS PAIS\n";
     #print map "Hash: $_ = $registros_prestamos{$_}\n", keys %registros_prestamos;
 }
@@ -1022,7 +1036,7 @@ sub analizarParametros{
     {
         &mostrarAyuda(@_[1]);               
     }
-    elsif ($cmd eq "-cr" || $cmd eq "-dp" || $cmd eq "-dm" )
+    elsif ( $cmd eq "-cr" || $cmd eq "-dp" || $cmd eq "-dm" )
     {
         &mostrarReportes(@_);
     }
@@ -1041,27 +1055,30 @@ sub analizarParametros{
 #                    #
 ######################
 
-	# primero obtengo los directorios necesarios para el procesamiento
-	&obtenerDirectorios;
-	# tomo los parametros y los convierto a strings
-    my $aux = join(' ',@ARGV); 
-    # quito caracter de eol
-    chomp($aux);
-    # paso parametros a array
-    my @parametros = split(/ /,$aux);
-    
-    # muestra resultado de consultas, hasta que 
-    # el usuario indique que quiere terminar
-    my $seguir = &analizarParametros(@parametros);
-    while ( $seguir )
-    {   
-        print "./ReporteX.pl ";
-        $aux = <STDIN>;
-        chomp($aux);
-        @parametros = split(/ /,$aux);
-        $seguir = &analizarParametros(@parametros);         
-    }
-
+	# me fijo si las variables de entorno necesarias estan inicializadas
+	if ( &verificarAmbiente )
+	{
+		# obtengo los directorios necesarios para el procesamiento
+		&obtenerDirectorios;
+		# tomo los parametros y los convierto a strings
+		my $aux = join(' ',@ARGV); 
+		# quito caracter de eol
+		chomp($aux);
+		# paso parametros a array
+		my @parametros = split(/ /,$aux);
+		
+		# muestra resultado de consultas, hasta que 
+		# el usuario indique que quiere terminar
+		my $seguir = &analizarParametros(@parametros);
+		while ( $seguir )
+		{   
+			print "./ReporteX.pl ";
+			$aux = <STDIN>;
+			chomp($aux);
+			@parametros = split(/ /,$aux);
+			$seguir = &analizarParametros(@parametros);         
+		}
+	}
 
 
 
