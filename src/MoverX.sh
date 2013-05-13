@@ -8,10 +8,9 @@ function MoverX () {
    fi
 
    # Tomo los parametros
-   origen="$1"
-
-   destino="$2"
-   comando="$3"
+   origen=$1
+   destino=$2
+   comando=$3
    
    carpetaOrigen=${origen%/*}
    archivo=${origen##*/}
@@ -24,7 +23,7 @@ function MoverX () {
 
    # 1.2 Verifico que existan el archivo origen y la carpeta destino
    if [ ! -f "$origen"  ] || [ ! -d "$destino" ]
-   then	
+   then
       return 1
    fi
 
@@ -32,12 +31,12 @@ function MoverX () {
    if [ -f "$destino/$archivo" ] 
    then
       # Verifico si existe la carpeta dup, si no, la creo y genero el numero de secuencia
-	  if [ ! -d "$destino/dup" ] || [ $(ls -1 $destino/dup | wc -l) = 0 ]
+	  if [ ! -d "$destino/dup" ] || [ $(ls -1 "$destino/dup" | wc -l) = 0 ]
 	  then
 	     mkdir -p "$destino/dup"
 	     nroSecuencia="0"
 	  else 
-	     maxNroArchivo=`ls -l $destino/dup/"$archivo"* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
+	     maxNroArchivo=`ls -l "$destino/dup/$archivo"* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
 	     let "nroSecuencia = maxNroArchivo + 1"
       fi
 	  
@@ -45,7 +44,9 @@ function MoverX () {
       mv "$origen" "$destino/dup/$archivo.$nroSecuencia"
 	  return 1
    fi
-   mv "$origen" "$destino"
    
+   mv "$origen" "$destino"   
    return 0
 }
+
+MoverX $1 $2 $3
