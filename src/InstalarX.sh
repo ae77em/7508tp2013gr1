@@ -484,6 +484,8 @@ function inicializarVariablesADefinir {
 	dirProcesados="procesados"
 	dirReportes="reportes"
 	dirLog="log"
+	extLog=".log"
+	maxSize=400
 
 }
 
@@ -516,8 +518,7 @@ Actualizando la configuración del sistema..."
 	DATASIZE="${DATASIZE}=$usuario=$fecha"
 
 
-	echo "
-GRUPO=$GRUPO
+	echo "GRUPO=$GRUPO
 BINDIR=$BINDIR
 MAEDIR=$MAEDIR
 ARRIDIR=$ARRIDIR
@@ -528,8 +529,7 @@ REPODIR=$REPODIR
 LOGDIR=$LOGDIR
 LOGEXT=$LOGEXT
 LOGSIZE=$LOGSIZE
-DATASIZE=$DATASIZE
-	"> $CONFDIR/$confFile
+DATASIZE=$DATASIZE"> $CONFDIR/$confFile
 
 }
 
