@@ -4,11 +4,23 @@
 # Demonio que detecta llegada de archivos a $ARRIDIR, y los acepta o rechaza
 #
 #
-#ACTUAL="$PWD/Detectar"
-#ARRIDIR="$ACTUAL/arridir"
-#ACEPDIR="$ACTUAL/acepdir"
-#RECHDIR="$ACTUAL/rechdir"
-#MAEDIR="$ACTUAL/maedir"
+
+function validarInicio() {
+
+   variables=(GRUPO BINDIR MAEDIR ARRIDIR ACEPDIR RECHDIR PROCDIR REPODIR LOGDIR LOGEXT LOGSIZE DATASIZE)
+  
+   for var in ${variables[*]}
+     do
+	res=`env | grep $var | cut -d"=" -f 2`
+	if [ -z $res ]; then
+		return 1
+	fi
+  done	
+
+  return 0;
+}
+
+#########################################
 
 source "valPais.sh";
 source "$BINDIR/GlogX.sh";
@@ -20,7 +32,20 @@ archMae="$MAEDIR/p-s.mae"
 
 if [[ $# != 2 ]]
 	then
-	echo "Error: Falta un parámetro - debe pasarse como parametro la cantidad de ciclos y el tiempo de espera en segundos"
+	echo "Error: Cantidad de parámetros del DetectaX errónea. Debe pasarse como parametro la cantidad de ciclos y el tiempo de espera en segundos"
+	exit 0
+fi
+
+#chequeo el ambiente inicializado
+
+CONFDIR=../conf
+
+validarInicio
+validacion1=$?
+
+if [ $validacion1 -eq 1 ] 
+then
+	echo "Ambiente no inicializado. No se ejecutará el DetectaX.sh"
 	exit 0
 fi
 
@@ -30,7 +55,7 @@ periodoActual=$anioActual$mesActual
 
 
 canloop=$1
-tespera=$2
+tespera=$( expr $2 \* 60 ) 
 
 ########## comienza a correr
 while [[ "$canloop" != 0 ]]
@@ -60,7 +85,7 @@ do
 				cantDigMes=$(echo -n "$mes" | wc -m)
 				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
 					then
-					GlogX "DetectaX.sh" "E" "nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" "DetectaX"
+					GlogX "DetectaX.sh" "E" "Archivo $aux: nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" "DetectaX"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
@@ -69,7 +94,7 @@ do
 				periodo=$anio$mes
 				if [[ "$periodo" > "$periodoActual" ]] || [[ "$periodo" < "200000" ]] #2000+00
 					then
-					GlogX "DetectaX.sh" "E" "periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" "DetectaX"
+					GlogX "DetectaX.sh" "E" "Error en archivo $aux: periodo invalido. Debe ser desde 2001-01 hasta $anioActual-$mesActual" "DetectaX"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false	
 					continue	
@@ -77,13 +102,13 @@ do
 			########### pais/sistema/mes
 				if [ "$mes" -lt 0 ] || [ "$mes" -gt 12 ]
 					then
-					GlogX "DetectaX.sh" "E" "Mes invalido" "DetectaX"
+					GlogX "DetectaX.sh" "E" "Error archivo $aux: Mes invalido, debe ser entre 01 y 12" "DetectaX"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 					valido=false
 					continue
 				fi
 
-				validar "$pais" "$sistema" "$archMae"
+				validar "$pais" "$sistema" "$archMae" "$aux"
 				ret=$?
 				if [[ $ret -ne 0 ]]
 				then			
@@ -104,7 +129,7 @@ do
 
 	
 			else
-				GlogX "DetectaX.sh" "E" "tipo de arch invalido (escribir log)" "DetectaX"
+				GlogX "DetectaX.sh" "E" "Error archivo $aux: tipo de arch invalido" "DetectaX"
 				MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
 				validez=false
 
@@ -117,13 +142,7 @@ do
 
 	if [[ $(ls -A "$ACEPDIR") ]] #si $ACEPTDIR tiene algun archivo
 	then
-		#GlogX "DetectaX.sh" "I" "$ACEPDIR: Carpeta con archivos, se ejecutara el interprete si no hay otro corriendo" "DetectaX"
-		procssid=$(ps | grep "Interprete" | sed 's-\(^ *\)\([0-9]*\)\(.*$\)-\2-g')
-		if [ -z $procssid ]; then 
- 			GlogX "DetectaX.sh" "E" "El Interprete ya esta corriendo. Número de proceso: $procssid" "DetectaX"
-		else
-			StartX.sh "DetectaX.sh" "Interprete.sh"
-		fi
+		StartX.sh "DetectaX" "Interprete.sh"
 	fi
 
 #### termino el ciclo, actualizo variable

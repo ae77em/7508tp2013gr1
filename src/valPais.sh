@@ -2,15 +2,16 @@
 function validar()
 {
 
-if [[ $# != 3 ]]
+if [[ $# != 4 ]]
 then
-	echo "error en cantidad de parametros, no se pueden validar sistema y pais"
+	echo "Error en cantidad de parametros en el validar, no se pueden validar sistema y pais"
 	exit 20
 fi
 
-pais=$1
-sistema=$2
-archPath=$PWD/$3
+pais="$1"
+sistema="$2"
+archPath="$PWD/$3"
+archivo="$4"
 paisEncontrado=false
 sistemaEncontrado=false
 combinacionEncontrada=false
@@ -40,31 +41,30 @@ done
 
 if [[ "$combinacionEncontrada" = true ]]
 then
-	GlogX "DetectaX.sh" "E" "Valido" "DetectaX"
 	return 0
 fi
 
 if [[ "$paisEncontrado" = false ]] && [[ "$sistemaEncontrado" = false ]] 
 then
-	GlogX "DetectaX.sh" "E" "No existe ni sistema ni pais" "DetectaX"
+	GlogX "DetectaX.sh" "E" "Error en archivo $archivo: No existe ni sistema ni pais" "DetectaX"
 	return 1
 fi
 
 if [[ "$paisEncontrado" = false ]]
 then
-	GlogX "DetectaX.sh" "E" "No existe pais" "DetectaX"
+	GlogX "DetectaX.sh" "E" "Error en archivo $archivo: No existe pais" "DetectaX"
 	return 2
 fi
 
 if [[ "$sistemaEncontrado" = false ]]
 then
-	GlogX "DetectaX.sh" "E" "No existe sistema" "DetectaX"
+	GlogX "DetectaX.sh" "E" "Error en archivo $archivo: No existe sistema" "DetectaX"
 	return 3
 fi
 
 if [[ "$paisEncontrado" = true ]] && [[ "$sistemaEncontrado" = true ]] 
 then
-	 GlogX "DetectaX.sh" "E" "No existe combinacion" "DetectaX"
+	 GlogX "DetectaX.sh" "E" "Error en archivo $archivo: No existe combinacion pais-sistema" "DetectaX"
 	 return 4
 fi
 

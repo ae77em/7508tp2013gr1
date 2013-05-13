@@ -8,9 +8,10 @@ function MoverX () {
    fi
 
    # Tomo los parametros
-   origen=$1
-   destino=$2
-   comando=$3
+   origen="$1"
+
+   destino="$2"
+   comando="$3"
    
    carpetaOrigen=${origen%/*}
    archivo=${origen##*/}
@@ -22,8 +23,8 @@ function MoverX () {
    fi
 
    # 1.2 Verifico que existan el archivo origen y la carpeta destino
-   if [ ! -f $origen  ] || [ ! -d $destino ]
-   then
+   if [ ! -f "$origen"  ] || [ ! -d "$destino" ]
+   then	
       return 1
    fi
 
@@ -36,16 +37,15 @@ function MoverX () {
 	     mkdir -p "$destino/dup"
 	     nroSecuencia="0"
 	  else 
-	     maxNroArchivo=`ls -l $destino/dup/$archivo* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
+	     maxNroArchivo=`ls -l $destino/dup/"$archivo"* | tail -1 | awk '{ print $NF }' | awk -F. '{ print $NF }'`
 	     let "nroSecuencia = maxNroArchivo + 1"
       fi
 	  
 	  # Copio el archivo a la carpeta de duplicados
-      mv $origen "$destino/dup/$archivo.$nroSecuencia"
+      mv "$origen" "$destino/dup/$archivo.$nroSecuencia"
 	  return 1
    fi
-     
-   mv $origen $destino
+   mv "$origen" "$destino"
    
    return 0
 }
