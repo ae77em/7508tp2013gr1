@@ -56,7 +56,7 @@ sub verificarAmbiente{
 			)
 		)
 	{
-		print "El programa no se puede ejecutar en el ambiente actual.\n";
+		print "El reporte no se puede mostrar ya que el ambiente no está correctamente inicializado.\n";
 		return 0;
 	}
 	else
@@ -315,7 +315,7 @@ sub mostrarAyuda{
     if ( uc($param) eq "" )
     {
         print "Ayuda del Generador de reportes del Grupo 1.\n";
-        print "Modo de uso:     ReporteX <subcomando> [opciones][argumenos]\n";
+        print "Modo de uso:     ReporteX <subcomando> [opciones][argumentos]\n";
         print "Tipee 'ReporteX -a <subcomando>' para obtener información acerca del subcomando.\n\n";
         print "Subcomandos disponibles:\n";
         print " -a\n";
