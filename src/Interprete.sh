@@ -326,9 +326,6 @@ if [ $validacion1 -eq 0 ]
 
            rm auxiliar
             
-              #Grabar en el log la cantidad de registros que entraron y la que salieron
-                GlogX "Interprete.sh" "I" "Registros de Input: $registrosInput" "Interprete"
-                GlogX "Interprete.sh" "I" "Registros de Output: $registrosOutput" "Interprete"
               #Mover archivo a $PROCDIR
                  MoverX "$ACEPDIR/$archivo" "$PROCDIR" "Interprete.sh"
               
@@ -343,7 +340,10 @@ if [ $validacion1 -eq 0 ]
     else
 	GlogX "Interprete.sh" "I" "No hay archivos de entrada" "Interprete"
     fi
-    #Grabar en el Log fin de interprete
+    	#Grabar en el Log fin de interprete
+        #Grabar en el log la cantidad de registros que entraron y la que salieron
+        GlogX "Interprete.sh" "I" "Registros de Input: $registrosInput" "Interprete"
+        GlogX "Interprete.sh" "I" "Registros de Output: $registrosOutput" "Interprete"
         GlogX "Interprete.sh" "I" "Interprete finalizado" "Interprete"
   #si el ambiente no esta inicializado
   else    
