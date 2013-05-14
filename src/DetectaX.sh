@@ -82,8 +82,9 @@ do
 				anio=$(echo "$sinExt" | cut -s -f3 -d'-')
 				cantDigAnio=$(echo -n "$anio" | wc -m)
 				mes=$(echo "$sinExt" | cut -s -f4 -d'-')
+				campoExtra=$(echo "$sinExt" | cut -f5 -d'-')
 				cantDigMes=$(echo -n "$mes" | wc -m)
-				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]]
+				if [[ "$pais" != [A-Z] ]] || [[ "$sistema" != [0-9] ]] || [[ "$cantDigAnio" != 4 ]] || [[ "$cantDigMes" != 2 ]] || [[ -n "$campoExtra" ]]
 					then
 					GlogX "DetectaX.sh" "E" "Archivo $aux: nombre de archivo con formato invalido. Ejemplo de formato valido: A-6-2010-02" "DetectaX"
 					MoverX  "$arch" "$RECHDIR" "DetectaX.sh"
@@ -121,7 +122,7 @@ do
 			#######aca terminan los invalidos, si llega es que es valido
 				if [[ "$valido" = true ]]
 					then
-					GlogX "DetectaX.sh" "I" "Archivo valido: $arch" "DetectaX"
+					GlogX "DetectaX.sh" "I" "Archivo valido: $aux" "DetectaX"
 					MoverX  "$arch" "$ACEPDIR" "DetectaX.sh"
 				else
 					echo "error de programacion, no deberia llegar aca invalido"	
