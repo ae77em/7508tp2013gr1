@@ -104,12 +104,12 @@ sub inicializarGlobales{
 sub normalizarValorDeUnDigito{
 	
 	my $valor = @_[0];
-	
+		
 	if( int($valor) < 10 )
 	{
-		$dia = '0'.int($valor);
+		$valor = '0'.int($valor);
 	}
-		
+	
 	return $valor;
 }
 
@@ -252,8 +252,8 @@ sub grabarRecalculo{
 	$year += 1900;
 	$mon++;
 	
-	$mon = "".&normalizarValorDeUnDigito($mon);
-	$mday = "".&normalizarValorDeUnDigito($mday);
+	$mon = &normalizarValorDeUnDigito($mon);
+	$mday = &normalizarValorDeUnDigito($mday);
 
     open(ARCHIVO_REPORTE,">>$REPODIR/$nombreArchivo") || die "ERROR: No puedo abrir el fichero $nombreArchivo\n";
     
@@ -482,6 +482,8 @@ sub obtenerPrestamosImpagos{
         }
         if ( $PERIODO ne "" )
         {
+			print "Parametro -pe: $PERIODO\n";
+			print "Valor registro: ".@valores_registro[2]."/".@valores_registro[3]."\n";
             if ( uc($PERIODO) ne uc(@valores_registro[2]."/".@valores_registro[3])){ next; }
         }
         if ( $RANGO_PERIODOS ne "" )
@@ -616,7 +618,7 @@ sub mostrarRecomendacion{
 	$hour = &normalizarValorDeUnDigito($hour);
 	$min = &normalizarValorDeUnDigito($min);
 	$sec = &normalizarValorDeUnDigito($sec);
-	
+		
 	my $descriptor = $year.$mon.$mday.$hour.$min.$sec;
 		
 	# si me pidieron guardar el reporte creo el archivo
