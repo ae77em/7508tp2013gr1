@@ -28,7 +28,7 @@ function VlogX {
    then
       tail $filtro $directorioLog/$archivoLog$LOGEXT
    else
-      cat $directorioLog/$archivoLog$LOGEXT | grep -i $filtro
+      cat $directorioLog/$archivoLog$LOGEXT | grep -i "$filtro"
    fi   
    
    return 0
