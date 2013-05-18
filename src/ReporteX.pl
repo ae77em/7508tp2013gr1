@@ -4,7 +4,7 @@
 #                      #
 #  VARIABLES GLOBALES  #
 #                      #
-########################
+#########################FFFFFF
 
 $MAEDIR="";		# Directorio de archivos maestros
 $PROCDIR="";	# Directorio de archivos para procesamiento
@@ -134,6 +134,98 @@ sub validarRespuesta{
         print "¡Respuesta incorrecta!";
         return(-1);
     }
+}
+
+#
+# Valida que la fecha ingresada tenga formato correcto
+#
+sub validarPeriodo{
+	
+	my $fecha = @_[0];
+	
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	$year += 1900;
+	
+	# obtengo las distintas partes de la fecha
+	my $anio = substr $fecha, 0, 4;
+	my $separador = substr $fecha, 4, 1;
+	my $mes = substr $fecha, 5, 2;
+	
+	# si cualquiera de los dos no es una cadena de números
+	# o no tiene la barra / en la fecha 
+	if ( length( $fecha ) != 7 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( $anio !~ /^-?\d+\z/ )
+	{
+		# devuelvo falso
+		return 0;		
+	}
+	if ( int($anio) > int($year) or int($anio) < 1900 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( $mes !~ /^-?\d+\z/ )
+	{
+		# devuelvo falso
+		return 0;		
+	}
+	if ( int($mes) > 12 or int($mes) < 1 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( $separador ne "/" )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	
+	# devuelvo ok
+	return 1;
+}
+
+#
+# Valida que el rango de fechas ingresada tenga formato correcto
+#
+sub validarRangoPeriodos{
+	
+	my $rango_fechas = @_[0];
+	
+	# obtengo las distintas partes de la fecha
+	my $fecha1 = substr $rango_fechas, 0, 7;
+	my $separador = substr $rango_fechas, 7, 1;
+	my $fecha2 = substr $rango_fechas, 8, 7;
+	
+	# si cualquiera de los dos no es una fecha
+	# o no tiene el guión - como separador
+	if ( length( $rango_fechas ) != 15 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( not &validarPeriodo( $fecha1 ) )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( not &validarPeriodo( $fecha2 ) )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	if ( $separador ne "-" )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	
+	# devuelvo ok por default
+	return 1;
+	
 }
 
 #
@@ -482,8 +574,7 @@ sub obtenerPrestamosImpagos{
         }
         if ( $PERIODO ne "" )
         {
-			print "Parametro -pe: $PERIODO\n";
-			print "Valor registro: ".@valores_registro[2]."/".@valores_registro[3]."\n";
+						
             if ( uc($PERIODO) ne uc(@valores_registro[2]."/".@valores_registro[3])){ next; }
         }
         if ( $RANGO_PERIODOS ne "" )
@@ -708,7 +799,7 @@ sub mostrarDiferencia{
             $reg_p_p[11] =~ s/\,/\./;
             $reg_p_p[14] =~ s/\,/\./;
             
-            $monto_pais = sprintf("%.2f",$reg_p_p[11]);
+            $monto_pais = sprintf("%#FFF9DA.2f",$reg_p_p[11]);
             $monto_mae = sprintf("%.2f",$reg_ppi[14]);
             $diferencia = $monto_mae - $monto_pais;
             
@@ -887,7 +978,7 @@ sub mostrarReportes{
 			}
 			else
 			{
-				print "Puede indicar solo un país por consulta.\n";
+				print "\nPuede indicar solo un país por consulta.\n";
 				return(0);
 			}
         }
@@ -903,13 +994,13 @@ sub mostrarReportes{
 				}
 				else
 				{
-					print "Puede indicar solo un valor para diferencias por consulta.\n";
+					print "\nPuede indicar solo un valor para diferencias por consulta.\n";
 					return(0);
 				}
 			}
 			else
 			{
-				print "El comando ingresado no admite el parametro \"x\".\n";
+				print "\nEl comando ingresado no admite el parametro \"x\".\n";
 				return(0);
 			}			
 		}
@@ -917,7 +1008,7 @@ sub mostrarReportes{
         {
 			if ( $parametro_sistema != 0 )
 			{
-				print "Puede indicar solo un sistema por consulta.\n";
+				print "\nPuede indicar solo un sistema por consulta.\n";
 				return(0);
 			}
 			else
@@ -931,12 +1022,17 @@ sub mostrarReportes{
         {
 			if ( $parametro_de_rangos != 0 )
 			{
-				print "Puede indicar solo un año, periodo o rango de periodos por consulta.\n";
+				print "\nPuede indicar solo un año, periodo o rango de periodos por consulta.\n";
 				return(0);
 			}
 			else
 			{
 				$CTB_ANIO = substr $parametro, index($parametro,'=')+1, (length $parametro)-3;
+				if ( $CTB_ANIO !~ m/\d+$/ )
+				{
+					print "\nEl año ingresado es incorrecto.\n";
+					return(0);
+				}
 				$parametro_de_rangos = 1;
 				$COMANDOS_USADOS.="Año: $CTB_ANIO. ";
 			}
@@ -945,12 +1041,17 @@ sub mostrarReportes{
         {
 			if ( $parametro_de_rangos != 0 )
 			{
-				print "Puede indicar solo un año, periodo o rango de periodos por consulta.\n";
+				print "\nPuede indicar solo un año, periodo o rango de periodos por consulta.\n";
 				return(0);
 			}
 			else
 			{
 				$PERIODO = substr $parametro, index($parametro,'=')+1, (length $parametro)-4;
+				if ( not &validarPeriodo($PERIODO) )
+				{
+					print "\nEl formato de período ingresado es incorrecto.\n";
+					return(0);
+				}
 				$parametro_de_rangos = 1;
 				$COMANDOS_USADOS.="Período: $PERIODO. ";
 			}
@@ -959,12 +1060,17 @@ sub mostrarReportes{
         {
 			if ( $parametro_de_rangos != 0 )
 			{
-				print "Puede indicar solo un año, periodo o rango de periodos por consulta.\n";
+				print "\nPuede indicar solo un año, periodo o rango de periodos por consulta.\n";
 				return(0);
 			}
 			else
 			{
 				$RANGO_PERIODOS = substr $parametro, index($parametro,'=')+1, (length $parametro)-4;
+				if ( not &validarRangoPeriodos($RANGO_PERIODOS) )
+				{
+					print "\nEl formato de rango de períodos ingresado es incorrecto.\n";
+					return(0);
+				}
 				$parametro_de_rangos = 1;
 				$COMANDOS_USADOS.="Rango de Períodos: $RANGO_PERIODOS. ";
 			}
@@ -976,14 +1082,14 @@ sub mostrarReportes{
         }
         else
         {
-            print "El parametro $parametro es incorrecto.\n";
+            print "\nEl parametro $parametro es incorrecto.\n";
             return(0);
         }        
     }
     
     if ( ! $parametro_de_pais )
     {
-		print "Debe indicar un país.\n";
+		print "\nDebe indicar un país.\n";
 		return(0);
 	}
        
@@ -993,7 +1099,7 @@ sub mostrarReportes{
     # si no se encontro el país, salgo de la subrutina
     if ( $PAIS_ID eq "" )
     {
-        print "El país ingresado no está en la base de datos.";
+        print "\nEl país ingresado no está en la base de datos.";
         return(0);
     }
         
