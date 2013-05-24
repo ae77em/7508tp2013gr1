@@ -554,14 +554,14 @@ function moverArchivos {
 	echo "
 Instalando Archivos Maestros..."
 	
-	grabarLog "INFORMATIVO" "Instalando Archivos Maestros..."
+	grabarLog "I" "Instalando Archivos Maestros..."
 
 	for i in PPI.mae p-s.mae
 	do
 		if [ -f "$grupo/instalacion/mae/$i" ]; then
 			 
-			MoverX  "$grupo/instalacion/mae/$i" "$MAEDIR" "InstalarX.sh"
-
+			if ! [ -f "$MAEDIR/$i" ]; then cp "$grupo/instalacion/mae/$i" "$MAEDIR"; fi
+			
 			resultado=$?
 
 			#echo "RESULTADO: $resultado"
@@ -583,13 +583,13 @@ Instalando Archivos Maestros..."
 	echo "
 Instalando Tablas de Configuración..."
 	
-	grabarLog "INFORMATIVO" "Instalando Tablas de Configuración..."
+	grabarLog "I" "Instalando Tablas de Configuración..."
 
 	for i in T1.tab T2.tab
 	do
 		if [ -f "$grupo/instalacion/tablas/$i" ]; then
 			 
-			MoverX  "$grupo/instalacion/tablas/$i" "$CONFDIR" "InstalarX.sh"
+			if ! [ -f "$CONFDIR/$i" ]; then cp "$grupo/instalacion/tablas/$i" "$CONFDIR"; fi
 
 			resultado=$?
 
@@ -621,7 +621,7 @@ Instalando Programas y Funciones..."
 	do
 		if [ -f "$grupo/instalacion/bin/$i" ]; then
 			 
-			MoverX  "$grupo/instalacion/bin/$i" "$BINDIR" "InstalarX.sh"
+			if ! [ -f "$BINDIR/$i" ]; then cp "$grupo/instalacion/bin/$i" "$BINDIR"; fi
 		 	
 			resultado=$?
 
