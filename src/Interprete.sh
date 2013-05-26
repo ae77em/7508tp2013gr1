@@ -307,7 +307,17 @@ if [ $validacion1 -eq 0 ]
                    MT_REST_ENT=`expr substr $MT_REST 1 $posicionSeparador`
                 fi
              fi
+             
+             if [ -z $MT_REST_ENT ]              
+             then 
+               MT_REST_ENT=0
+             fi
 
+             if [ -z $MT_REST_DEC ]              
+             then 
+               MT_REST_DEC=0
+             fi
+             
              #Darle formato a los registros y guardar los correspondientes
              if [ $MT_REST_ENT -le 0 ]&&[ $MT_REST_DEC -le 0 ]
              then
