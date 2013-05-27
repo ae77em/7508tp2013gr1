@@ -137,14 +137,54 @@ sub validarRespuesta{
 }
 
 #
+# Valida que el año ingresado tenga formato correcto
+#
+sub validarAnio{
+	
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $anio = @_[0];
+	
+	$year += 1900;
+	
+	if ( $anio !~ /^-?\d+\z/ )
+	{
+		# devuelvo falso
+		return 0;		
+	}
+	if ( int($anio) > int($year) or int($anio) < 1900 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	return 1;
+}
+
+#
+# Valida que el año ingresado tenga formato correcto
+#
+sub validarMes{
+
+	my $mes = @_[0];
+	
+	if ( $mes !~ /^-?\d+\z/ )
+	{
+		# devuelvo falso
+		return 0;		
+	}
+	if ( int($mes) > 12 or int($mes) < 1 )
+	{
+		# devuelvo falso
+		return 0;
+	}
+	return 1;
+}
+
+#
 # Valida que la fecha ingresada tenga formato correcto
 #
 sub validarPeriodo{
 	
 	my $fecha = @_[0];
-	
-	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-	$year += 1900;
 	
 	# obtengo las distintas partes de la fecha
 	my $anio = substr $fecha, 0, 4;
@@ -158,29 +198,23 @@ sub validarPeriodo{
 		# devuelvo falso
 		return 0;
 	}
-	if ( $anio !~ /^-?\d+\z/ )
+	
+	if ( ! &validarAnio($anio) )
 	{
-		# devuelvo falso
-		return 0;		
-	}
-	if ( int($anio) > int($year) or int($anio) < 1900 )
-	{
-		# devuelvo falso
+		print "\nAño incorrecto.\n";
 		return 0;
 	}
-	if ( $mes !~ /^-?\d+\z/ )
+	
+	if ( ! &validarMes($mes) )
 	{
-		# devuelvo falso
-		return 0;		
-	}
-	if ( int($mes) > 12 or int($mes) < 1 )
-	{
-		# devuelvo falso
+		print "\nMes incorrecto.\n";
 		return 0;
 	}
+		
 	if ( $separador ne "/" )
 	{
 		# devuelvo falso
+		print "\nSeparador incorrecto.\n";
 		return 0;
 	}
 	
@@ -220,6 +254,7 @@ sub validarRangoPeriodos{
 	if ( $separador ne "-" )
 	{
 		# devuelvo falso
+		print "\nSeparador incorrecto.\n";
 		return 0;
 	}
 	
@@ -500,33 +535,37 @@ sub obtenerPrestamosPais{
 				# obtengo los datos y los almaceno en un array
 				@valores_registro = split(';',$_);
 				
-				# tomo los datos necesarios para la comparacion
-				$anio_ctb   = @valores_registro[1];
-				$mes_ctb    = &normalizarValorDeUnDigito(@valores_registro[2]);
-				$dia_ctb    = @valores_registro[3];
-				$fecha_grab = @valores_registro[14];
-				
-				# compongo la clave de busqueda
-				$clave_p_p  = @valores_registro[5].int($anio_ctb).int($mes_ctb);
-				
-				# almaceno los valores en una estructura hash
-				if ( exists $registros_prestamos{$clave_p_p} )
-				{
-					# obtengo los datos almacenados
-					$aux = split(';',$registros_prestamos{$clave_p_p});
-					# si la fecha de grabacion del nuevo registro es mas actual lo almaceno
-					if ( uc($aux[14]) lt uc($fecha_grab)  )
+				# me fijo que el cliente sea valido
+				if ( int(@valores_registro[12]) > -1 )
+				{					
+					# tomo los datos necesarios para la comparacion
+					$anio_ctb   = @valores_registro[1];
+					$mes_ctb    = &normalizarValorDeUnDigito(@valores_registro[2]);
+					$dia_ctb    = @valores_registro[3];
+					$fecha_grab = @valores_registro[14];
+					
+					# compongo la clave de busqueda
+					$clave_p_p  = @valores_registro[5].int($anio_ctb).int($mes_ctb);
+					
+					# almaceno los valores en una estructura hash
+					if ( exists $registros_prestamos{$clave_p_p} )
 					{
-						# borro y reinserto datos validos
-						delete($registros_prestamos{$clave_p_p}); 
-						$registros_prestamos{$clave_p_p} = $_;
+						# obtengo los datos almacenados
+						$aux = split(';',$registros_prestamos{$clave_p_p});
+						# si la fecha de grabacion del nuevo registro es mas actual lo almaceno
+						if ( uc($aux[14]) lt uc($fecha_grab)  )
+						{
+							# borro y reinserto datos validos
+							delete($registros_prestamos{$clave_p_p}); 
+							$registros_prestamos{$clave_p_p} = $_;
 
+						}
+						# si no, no hago nada...
 					}
-					# si no, no hago nada...
-				}
-				else
-				{
-					$registros_prestamos{$clave_p_p} = $_;
+					else
+					{
+						$registros_prestamos{$clave_p_p} = $_;
+					}
 				}
 			}
 			close PRESTAMOS_PAIS;
@@ -638,6 +677,8 @@ sub mostrarRecomendacion{
         
     my $linea;
     my $recomendacion;
+    my $mr_ppi;
+    my $mr_p_p;
     
     # recorro los datos y voy viendo si es necesario el recalculo
     foreach my $llave (keys %registros_ppi)
@@ -649,11 +690,13 @@ sub mostrarRecomendacion{
             @reg_p_p = split(";",$registros_prestamos{$llave});
             @reg_ppi = split(";",$registros_ppi{$llave});
 
-            #print "reg_p_p: $registros_prestamos{$llave}\n";
-            #print "reg_ppi: $registros_ppi{$llave}\n";
+            # imprimo a float los montos restantes para evitar problemas
+            # de comparaciones numericas entre strings
+            $mr_ppi = sprintf("%.2f",$reg_ppi[14]);
+            $mr_p_p = sprintf("%.2f",$reg_p_p[11]);
 
             # defino si hay que hacer recalculo o no
-            if ( ( $reg_ppi[5] eq "SMOR" && $reg_p_p[4] ne "SMOR" ) || ( $reg_ppi[14] lt $reg_p_p[11]  ) )
+            if ( ( $reg_ppi[5] eq "SMOR" && $reg_p_p[4] ne "SMOR" ) || ( $mr_ppi < $mr_p_p ) )
             {
                 $recomendacion = "RECALCULO";
             }   
@@ -662,7 +705,7 @@ sub mostrarRecomendacion{
                 $recomendacion = "BUENO";
             }
             #           prestamo    -   cliente  -  estado cont mae-estado cont pais- mt rest mae   - mt rest pais 
-            $linea = $reg_ppi[7].";".$reg_p_p[12].";".$reg_ppi[5].";".$reg_p_p[4].";".$reg_ppi[14].";".$reg_p_p[11].";".$recomendacion;
+            $linea = $reg_ppi[7].";".$reg_p_p[12].";".$reg_ppi[5].";".$reg_p_p[4].";".$mr_ppi.";".$mr_p_p.";".$recomendacion;
 
             push (@aux,$linea);         
         }
@@ -796,13 +839,16 @@ sub mostrarDiferencia{
             @reg_p_p = split(";",$registros_prestamos{$llave});
             @reg_ppi = split(";",$registros_ppi{$llave});
             
+            # cambio comas por puntos
             $reg_p_p[11] =~ s/\,/\./;
             $reg_p_p[14] =~ s/\,/\./;
             
-            $monto_pais = sprintf("%#FFF9DA.2f",$reg_p_p[11]);
+            # realizo el calculo de la diferencia
+            $monto_pais = sprintf("%.2f",$reg_p_p[11]);
             $monto_mae = sprintf("%.2f",$reg_ppi[14]);
             $diferencia = $monto_mae - $monto_pais;
             
+            # me fijo cual es la operacion ingresada
             if ( $cmd eq "-dp" )
             {
 				$tipo_rep  = "PORCENTAJE";
@@ -819,7 +865,7 @@ sub mostrarDiferencia{
             if ( abs($resultado) >= abs($VALOR_DIFERENCIA) )
             {
 				#           prestamo - mt rest mae   - mt rest pais 
-				$linea = $reg_ppi[7].";".$reg_ppi[14].";".$reg_p_p[11].";".$resultado;
+				$linea = $reg_ppi[7].";".$monto_mae.";".$monto_pais.";".$resultado;
 				push (@aux,$linea);
 			}            
         }
@@ -1028,7 +1074,8 @@ sub mostrarReportes{
 			else
 			{
 				$CTB_ANIO = substr $parametro, index($parametro,'=')+1, (length $parametro)-3;
-				if ( $CTB_ANIO !~ m/\d+$/ )
+				print "$CTB_ANIO\n";
+				if ( ! &validarAnio($CTB_ANIO) )
 				{
 					print "\nEl año ingresado es incorrecto.\n";
 					return(0);
@@ -1150,7 +1197,7 @@ sub analizarParametros{
     }
     else
     {
-        print "El comando es incorrecto.\n";
+        print "\nEl comando es incorrecto. Ingrese './ReporteX.pl -a' para obtener ayuda.\n";
     }
     
     return &confirma("\n¿Desea realizar otra consulta? [s/n]: ");
